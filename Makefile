@@ -5,7 +5,7 @@
 
 include ./user_build_config
 
-OBJS =	vector2tile_converter.o
+OBJS =	namelist_mod.o restart_converter_mod.o vector2tile_converter.o
 	
 all:	vector2tile_converter.exe
 
