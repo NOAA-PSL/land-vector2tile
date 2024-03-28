@@ -1,4 +1,5 @@
 vector2tile_converter.exe
 vector2tile_converter.o
+user_build_config
 *.mod 
 *.o
