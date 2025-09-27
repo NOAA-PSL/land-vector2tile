@@ -747,6 +747,10 @@ contains
       (/dim_id_xdim,dim_id_ydim,dim_id_time/), varid)
       if (status /= nf90_noerr) call handle_err(status)
 
+    status = nf90_def_var(ncid, "snwdph", NF90_DOUBLE,   &
+      (/dim_id_xdim,dim_id_ydim,dim_id_time/), varid)
+      if (status /= nf90_noerr) call handle_err(status)
+
     status = nf90_def_var(ncid, "snowxy", NF90_DOUBLE,   &
       (/dim_id_xdim,dim_id_ydim,dim_id_time/), varid)
       if (status /= nf90_noerr) call handle_err(status)
@@ -831,6 +835,10 @@ contains
       start = (/1,1,1/), count = (/namelist%tile_size, namelist%tile_size, 1/))
 
     status = nf90_inq_varid(ncid, "snodl", varid)
+    status = nf90_put_var(ncid, varid , tile%snow_depth(:,:,itile)   , &
+      start = (/1,1,1/), count = (/namelist%tile_size, namelist%tile_size, 1/))
+
+    status = nf90_inq_varid(ncid, "snwdph", varid)
     status = nf90_put_var(ncid, varid , tile%snow_depth(:,:,itile)   , &
       start = (/1,1,1/), count = (/namelist%tile_size, namelist%tile_size, 1/))
 
