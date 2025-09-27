@@ -421,11 +421,15 @@ contains
   type(namelist_type) :: namelist
   type(tile_type)     :: tile
   character*19        :: date
+  character*6         :: snd_name
   character*256       :: tile_filename
   integer             :: ncid, dimid, varid, status
   integer             :: itile
   logical             :: file_exists
-  
+
+  snd_name = "snwdph"
+  if(namelist%gfsv17) snd_name = "snodl"
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Create tile file name
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -463,9 +467,9 @@ contains
     status = nf90_get_var(ncid, varid , tile%swe(:,:,itile)   , &
       start = (/1,1,1/), count = (/namelist%tile_size, namelist%tile_size, 1/))
 
-    status = nf90_inq_varid(ncid, "snodl", varid)
+    status = nf90_inq_varid(ncid, trim(snd_name), varid)
     if (status /= nf90_noerr) then
-        print *, 'snodl variable missing from tile file'
+        print *, trim(snd_name)//' variable missing from tile file'
         call handle_err(status)
     endif
     status = nf90_get_var(ncid, varid , tile%snow_depth(:,:,itile)   , &
