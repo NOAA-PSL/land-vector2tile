@@ -6,5 +6,5 @@
  COMPILERF90    =       ifort
  FREESOURCE     =       
  F90FLAGS       =       
- NETCDFMOD      =       -I${NETCDF}/include
- NETCDFLIB      =       -L${NETCDF}/lib -lnetcdf -lnetcdff
+ NETCDFMOD      =       -I${netcdf_fortran_ROOT}/include
+ NETCDFLIB      =       -L${netcdf_fortran_ROOT}/lib -lnetcdff

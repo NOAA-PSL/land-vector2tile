@@ -7,5 +7,5 @@
  FREESOURCE     =       
  F90FLAGS       =       
  NETCDFMOD      =       -I/opt/local/include
- NETCDFLIB      =       -L/opt/local/lib -lnetcdf -lnetcdff
+ NETCDFLIB      =       -L/opt/local/lib -lnetcdff
 
