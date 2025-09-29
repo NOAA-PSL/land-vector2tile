@@ -378,7 +378,6 @@ contains
       start = (/1            , 1, 1/)                , &
       count = (/vector_length, 4, 1/))
 
-
   status = nf90_inq_varid(ncid, "temperature_ground", varid)
   if (status /= nf90_noerr) then
         print *, 'temperature_ground variable missing from vector file'
@@ -743,6 +742,8 @@ contains
       (/dim_id_xdim,dim_id_ydim,dim_id_time/), varid)
       if (status /= nf90_noerr) call handle_err(status)
 
+    ! note: we write the snow_depth variable from the vector restart as both snodl & snwdph in the tile for now
+    ! snwdph may be removed later on if needed
     status = nf90_def_var(ncid, "snodl", NF90_DOUBLE,   &
       (/dim_id_xdim,dim_id_ydim,dim_id_time/), varid)
       if (status /= nf90_noerr) call handle_err(status)
