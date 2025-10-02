@@ -681,6 +681,9 @@ contains
   integer             :: ncid, varid, status, i
   integer             :: dim_id_xdim, dim_id_ydim, dim_id_soil, dim_id_snow, dim_id_snso, dim_id_time
   
+  ! fraction of ice --all zero- but intended to enable GFSv17/fractional grids runs
+  real                :: frac_ice(namelist%tile_size, namelist%tile_size) = 0.
+  
   do itile = 1, 6
 
     !write(tile_filename,'(a17,a19,a5,i1,a3)') "ufs_land_restart.", date, ".tile", itile, ".nc"
@@ -788,7 +791,7 @@ contains
       (/dim_id_xdim,dim_id_ydim,dim_id_time/), varid)
       if (status /= nf90_noerr) call handle_err(status)
       
-  status = nf90_def_var(ncid, "vtype", NF90_DOUBLE,   &
+    status = nf90_def_var(ncid, "vtype", NF90_DOUBLE,   &
       (/dim_id_xdim,dim_id_ydim,dim_id_time/), varid)
       if (status /= nf90_noerr) call handle_err(status)
 
@@ -797,6 +800,11 @@ contains
       if (status /= nf90_noerr) call handle_err(status)
 
     status = nf90_def_var(ncid, "tgxy", NF90_DOUBLE,   &
+      (/dim_id_xdim,dim_id_ydim,dim_id_time/), varid)
+      if (status /= nf90_noerr) call handle_err(status)
+
+    ! fraction of ice
+    status = nf90_def_var(ncid, "fice", NF90_DOUBLE,   &
       (/dim_id_xdim,dim_id_ydim,dim_id_time/), varid)
       if (status /= nf90_noerr) call handle_err(status)
 
@@ -886,6 +894,11 @@ contains
 
     status = nf90_inq_varid(ncid, "vtype", varid)
     status = nf90_put_var(ncid, varid , tile%vegetation_type(:,:,itile)   , &
+      start = (/1,1,1/), count = (/namelist%tile_size, namelist%tile_size, 1/))
+
+    ! fraction of ice --all zero
+    status = nf90_inq_varid(ncid, "fice", varid)
+    status = nf90_put_var(ncid, varid , frac_ice(:,:)   , &
       start = (/1,1,1/), count = (/namelist%tile_size, namelist%tile_size, 1/))
 
 ! include for JEDI QC of SMAP obs
