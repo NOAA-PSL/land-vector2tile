@@ -34,6 +34,7 @@ module vector2tile_restart_mod
     double precision, allocatable :: snow_liq_layer     (:,:,:,:)
     double precision, allocatable :: temperature_soil   (:,:,:,:)
     real,             allocatable :: land_frac          (:,:,:)
+    double precision, allocatable :: ice_frac           (:,:,:)
     double precision, allocatable :: soil_moisture_total(:,:,:,:)
     double precision, allocatable :: vegetation_type(:,:,:)
 ! needed by add increments
@@ -82,6 +83,7 @@ contains
   allocate(tile%temperature_soil   (namelist%tile_size,namelist%tile_size,4,6))
   allocate(tile%soil_moisture_total  (namelist%tile_size,namelist%tile_size,4,6)) 
   allocate(tile%land_frac          (namelist%tile_size,namelist%tile_size,6))
+  allocate(tile%ice_frac           (namelist%tile_size,namelist%tile_size,6))
   allocate(tile%slmsk              (namelist%tile_size,namelist%tile_size,6))
   allocate(tile%vegetation_type    (namelist%tile_size,namelist%tile_size,6))
   allocate(tile%soil_moisture_liquid (namelist%tile_size,namelist%tile_size,4,6))
@@ -172,6 +174,7 @@ contains
         tile%temperature_soil(ix,iy,:,itile)    = vector%temperature_soil(iloc,:)
         tile%soil_moisture_total(ix,iy,:,itile) = vector%soil_moisture_total(iloc,:) 
         tile%slmsk(ix,iy,itile)                 = 1.
+        tile%ice_frac(ix,iy,itile)              = 0.                                   !10.20.25 added 0 fice at land locations for gfsv17
         tile%soil_moisture_liquid(ix,iy,:,itile)= vector%soil_moisture_liquid(iloc,:)
         tile%temperature_ground(ix,iy,itile)    = vector%temperature_ground(iloc)
       end if
@@ -561,6 +564,14 @@ contains
     status = nf90_get_var(ncid, varid , tile%temperature_ground(:,:,itile)   , &
       start = (/1,1,1/), count = (/namelist%tile_size, namelist%tile_size, 1/))
 
+    status = nf90_inq_varid(ncid, "fice", varid)
+    if (status /= nf90_noerr) then
+        print *, 'fice variable missing from tile file'
+        call handle_err(status)
+    endif
+    status = nf90_get_var(ncid, varid , tile%ice_frac(:,:,itile)   , &
+      start = (/1,1,1/), count = (/namelist%tile_size, namelist%tile_size, 1/))
+
     status = nf90_close(ncid)
 
   end do
@@ -788,7 +799,7 @@ contains
       (/dim_id_xdim,dim_id_ydim,dim_id_time/), varid)
       if (status /= nf90_noerr) call handle_err(status)
       
-  status = nf90_def_var(ncid, "vtype", NF90_DOUBLE,   &
+   status = nf90_def_var(ncid, "vtype", NF90_DOUBLE,   &
       (/dim_id_xdim,dim_id_ydim,dim_id_time/), varid)
       if (status /= nf90_noerr) call handle_err(status)
 
@@ -797,6 +808,11 @@ contains
       if (status /= nf90_noerr) call handle_err(status)
 
     status = nf90_def_var(ncid, "tgxy", NF90_DOUBLE,   &
+      (/dim_id_xdim,dim_id_ydim,dim_id_time/), varid)
+      if (status /= nf90_noerr) call handle_err(status)
+
+    ! fraction of ice
+    status = nf90_def_var(ncid, "fice", NF90_DOUBLE,   &
       (/dim_id_xdim,dim_id_ydim,dim_id_time/), varid)
       if (status /= nf90_noerr) call handle_err(status)
 
@@ -886,6 +902,11 @@ contains
 
     status = nf90_inq_varid(ncid, "vtype", varid)
     status = nf90_put_var(ncid, varid , tile%vegetation_type(:,:,itile)   , &
+      start = (/1,1,1/), count = (/namelist%tile_size, namelist%tile_size, 1/))
+
+    ! fraction of ice --all zero over land
+    status = nf90_inq_varid(ncid, "fice", varid)
+    status = nf90_put_var(ncid, varid , tile%ice_frac(:,:,itile)   , &
       start = (/1,1,1/), count = (/namelist%tile_size, namelist%tile_size, 1/))
 
 ! include for JEDI QC of SMAP obs
