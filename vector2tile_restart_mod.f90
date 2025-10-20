@@ -427,8 +427,9 @@ contains
   integer             :: itile
   logical             :: file_exists
 
-  snd_name = "snwdph"
-  if(namelist%gfsv17) snd_name = "snodl"
+  ! Oct 2025: GFSv17 vars used exclusively
+  snd_name = "snodl"
+  swe_name = "weasdl"
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Create tile file name
@@ -459,9 +460,9 @@ contains
 
 ! Start reading restart file
   
-    status = nf90_inq_varid(ncid, "sheleg", varid)
+    status = nf90_inq_varid(ncid, trim(swe_name), varid)
     if (status /= nf90_noerr) then
-        print *, 'sheleg variable missing from tile file'
+        print *, trim(swe_name)//' variable missing from tile file'
         call handle_err(status)
     endif
     status = nf90_get_var(ncid, varid , tile%swe(:,:,itile)   , &
