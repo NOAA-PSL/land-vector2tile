@@ -799,7 +799,7 @@ contains
       (/dim_id_xdim,dim_id_ydim,dim_id_time/), varid)
       if (status /= nf90_noerr) call handle_err(status)
       
-    status = nf90_def_var(ncid, "vtype", NF90_DOUBLE,   &
+   status = nf90_def_var(ncid, "vtype", NF90_DOUBLE,   &
       (/dim_id_xdim,dim_id_ydim,dim_id_time/), varid)
       if (status /= nf90_noerr) call handle_err(status)
 
