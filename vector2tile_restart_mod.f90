@@ -423,14 +423,18 @@ contains
   type(namelist_type) :: namelist
   type(tile_type)     :: tile
   character*19        :: date
-  character*6         :: snd_name
+  character*6         :: snd_name, swe_name
   character*256       :: tile_filename
   integer             :: ncid, dimid, varid, status
   integer             :: itile
   logical             :: file_exists
 
   snd_name = "snwdph"
-  if(namelist%gfsv17) snd_name = "snodl"
+  swe_name = "sheleg"
+  if (namelist%gfsv17) then 
+      snd_name = "snodl"
+      swe_name = "weasdl"
+  endif
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Create tile file name
@@ -461,9 +465,9 @@ contains
 
 ! Start reading restart file
   
-    status = nf90_inq_varid(ncid, "sheleg", varid)
+    status = nf90_inq_varid(ncid, trim(swe_name), varid)
     if (status /= nf90_noerr) then
-        print *, 'sheleg variable missing from tile file'
+        print *, trim(swe_name)//' variable missing from tile file'
         call handle_err(status)
     endif
     status = nf90_get_var(ncid, varid , tile%swe(:,:,itile)   , &
@@ -749,12 +753,17 @@ contains
   
 ! Define variables in the file.
 
-    status = nf90_def_var(ncid, "sheleg", NF90_DOUBLE,    & ! note: this is weasd in vector file.
+    ! note: we write the snow_depth/swe variables from the vector restart as both snodl & snwdph /sheleg & weasdl in the tile for now
+    ! snwdph/sheleg may be removed later on if needed
+    
+    status = nf90_def_var(ncid, "weasdl", NF90_DOUBLE,    & 
       (/dim_id_xdim,dim_id_ydim,dim_id_time/), varid)
       if (status /= nf90_noerr) call handle_err(status)
 
-    ! note: we write the snow_depth variable from the vector restart as both snodl & snwdph in the tile for now
-    ! snwdph may be removed later on if needed
+    status = nf90_def_var(ncid, "sheleg", NF90_DOUBLE,    & ! note: this is weasd in vector file.
+      (/dim_id_xdim,dim_id_ydim,dim_id_time/), varid)
+      if (status /= nf90_noerr) call handle_err(status)
+    
     status = nf90_def_var(ncid, "snodl", NF90_DOUBLE,   &
       (/dim_id_xdim,dim_id_ydim,dim_id_time/), varid)
       if (status /= nf90_noerr) call handle_err(status)
@@ -847,10 +856,14 @@ contains
 
 ! Start writing restart file
   
-    status = nf90_inq_varid(ncid, "sheleg", varid)
+    status = nf90_inq_varid(ncid, "weasdl", varid)
     status = nf90_put_var(ncid, varid , tile%swe(:,:,itile)   , &
       start = (/1,1,1/), count = (/namelist%tile_size, namelist%tile_size, 1/))
 
+    status = nf90_inq_varid(ncid, "sheleg", varid)
+    status = nf90_put_var(ncid, varid , tile%swe(:,:,itile)   , &
+      start = (/1,1,1/), count = (/namelist%tile_size, namelist%tile_size, 1/))
+      
     status = nf90_inq_varid(ncid, "snodl", varid)
     status = nf90_put_var(ncid, varid , tile%snow_depth(:,:,itile)   , &
       start = (/1,1,1/), count = (/namelist%tile_size, namelist%tile_size, 1/))
