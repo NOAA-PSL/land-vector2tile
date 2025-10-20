@@ -429,12 +429,9 @@ contains
   integer             :: itile
   logical             :: file_exists
 
-  snd_name = "snwdph"
-  swe_name = "sheleg"
-  if (namelist%gfsv17) then 
-      snd_name = "snodl"
-      swe_name = "weasdl"
-  endif
+  ! Oct 2025: GFSv17 vars used exclusively
+  snd_name = "snodl"
+  swe_name = "weasdl"
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Create tile file name

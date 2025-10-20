@@ -13,7 +13,6 @@ module namelist_mod
     character*256      :: tile_restart_path = ""
     character*256      :: output_path = ""
     character*256      :: static_filename = ""
-    logical            :: gfsv17
     character*3        :: lndp_layout = ""
     character*256      :: lndp_input_file = ""
     character*256      :: lndp_output_file = ""
@@ -35,7 +34,6 @@ contains
     character*256       :: tile_restart_path
     character*256       :: output_path
     character*256       :: static_filename
-    logical             :: gfsv17
     character*3         :: lndp_layout
     character*256       :: lndp_input_file
     character*256       :: lndp_output_file
@@ -44,11 +42,10 @@ contains
     integer             :: k
 
     namelist / run_setup  / direction, tile_path, tile_fstub, tile_size,  restart_date, vector_restart_path, &
-                            tile_restart_path, output_path, static_filename, gfsv17, &
+                            tile_restart_path, output_path, static_filename, &
                             lndp_layout, lndp_input_file, lndp_output_file, lndp_var_list, n_var_lndp
 
     lndp_var_list = 'XXX'
-    gfsv17 = .false.
 
     open(30, file=namelist%namelist_name, form="formatted")
      read(30, run_setup)
@@ -63,7 +60,6 @@ contains
     namelist%tile_restart_path   = tile_restart_path
     namelist%output_path         = output_path
     namelist%static_filename     = static_filename
-    namelist%gfsv17              = gfsv17
 
     namelist%lndp_layout         = lndp_layout
     namelist%lndp_input_file     = lndp_input_file
