@@ -174,7 +174,7 @@ contains
         tile%temperature_soil(ix,iy,:,itile)    = vector%temperature_soil(iloc,:)
         tile%soil_moisture_total(ix,iy,:,itile) = vector%soil_moisture_total(iloc,:) 
         tile%slmsk(ix,iy,itile)                 = 1.
-        tile%ice_frac(ix,iy,itile)              = 0.                                   !10.20.25 added 0 fice at land locations for gfsv17
+        tile%ice_frac(ix,iy,itile)              = 0.      ! 0 fice at land locations
         tile%soil_moisture_liquid(ix,iy,:,itile)= vector%soil_moisture_liquid(iloc,:)
         tile%temperature_ground(ix,iy,itile)    = vector%temperature_ground(iloc)
       end if
