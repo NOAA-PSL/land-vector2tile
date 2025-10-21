@@ -750,9 +750,7 @@ contains
   
 ! Define variables in the file.
 
-    ! note: we write the snow_depth/swe variables from the vector restart as both snodl & snwdph /sheleg & weasdl in the tile for now
-    ! snwdph/sheleg may be removed later on if needed
-    
+    ! weasdl and snodl are required by GDASApp,so add them to tile outputs besides sheleg and snwdph   
     status = nf90_def_var(ncid, "weasdl", NF90_DOUBLE,    & 
       (/dim_id_xdim,dim_id_ydim,dim_id_time/), varid)
       if (status /= nf90_noerr) call handle_err(status)
@@ -852,9 +850,11 @@ contains
     status = nf90_put_var(ncid, varid ,(/(i, i=1, 7)/) )
 
 ! Start writing restart file
-  
+    
+    ! snow_depth/swe variables from the vector restart are grid cell averages
+    ! scaled by land_frac to get weasdl and snodl
     status = nf90_inq_varid(ncid, "weasdl", varid)
-    status = nf90_put_var(ncid, varid , tile%swe(:,:,itile)   , &
+    status = nf90_put_var(ncid, varid , tile%swe(:,:,itile)/tile%land_frac(:,:,itile)   , &    !weasdl = swe_grid/land_frac
       start = (/1,1,1/), count = (/namelist%tile_size, namelist%tile_size, 1/))
 
     status = nf90_inq_varid(ncid, "sheleg", varid)
@@ -862,7 +862,7 @@ contains
       start = (/1,1,1/), count = (/namelist%tile_size, namelist%tile_size, 1/))
       
     status = nf90_inq_varid(ncid, "snodl", varid)
-    status = nf90_put_var(ncid, varid , tile%snow_depth(:,:,itile)   , &
+    status = nf90_put_var(ncid, varid , tile%snow_depth(:,:,itile)/tile%land_frac(:,:,itile)   , &
       start = (/1,1,1/), count = (/namelist%tile_size, namelist%tile_size, 1/))
 
     status = nf90_inq_varid(ncid, "snwdph", varid)
