@@ -692,7 +692,8 @@ contains
   integer             :: itile
   integer             :: ncid, varid, status, i
   integer             :: dim_id_xdim, dim_id_ydim, dim_id_soil, dim_id_snow, dim_id_snso, dim_id_time
-  
+  double precision    :: swe_snd_land(namelist%tile_size, namelist%tile_size)   ! swe/snd over land
+
   do itile = 1, 6
 
     !write(tile_filename,'(a17,a19,a5,i1,a3)') "ufs_land_restart.", date, ".tile", itile, ".nc"
@@ -853,20 +854,25 @@ contains
     
     ! snow_depth/swe variables from the vector restart are grid cell averages
     ! scaled by land_frac to get weasdl and snodl
-    status = nf90_inq_varid(ncid, "weasdl", varid)
-    status = nf90_put_var(ncid, varid , tile%swe(:,:,itile)/tile%land_frac(:,:,itile)   , &    !weasdl = swe_grid/land_frac
-      start = (/1,1,1/), count = (/namelist%tile_size, namelist%tile_size, 1/))
-
+    
     status = nf90_inq_varid(ncid, "sheleg", varid)
     status = nf90_put_var(ncid, varid , tile%swe(:,:,itile)   , &
       start = (/1,1,1/), count = (/namelist%tile_size, namelist%tile_size, 1/))
-      
-    status = nf90_inq_varid(ncid, "snodl", varid)
-    status = nf90_put_var(ncid, varid , tile%snow_depth(:,:,itile)/tile%land_frac(:,:,itile)   , &
+    
+    swe_snd_land = 0.   !tile%swe(:,:,itile)
+    where(tile%land_frac(:,:,itile) > 0.) swe_snd_land = tile%swe(:,:,itile)/tile%land_frac(:,:,itile)
+    status = nf90_inq_varid(ncid, "weasdl", varid)
+    status = nf90_put_var(ncid, varid , swe_snd_land(:,:)   , &                 !weasdl = swe_grid/land_frac
       start = (/1,1,1/), count = (/namelist%tile_size, namelist%tile_size, 1/))
-
+    
     status = nf90_inq_varid(ncid, "snwdph", varid)
     status = nf90_put_var(ncid, varid , tile%snow_depth(:,:,itile)   , &
+      start = (/1,1,1/), count = (/namelist%tile_size, namelist%tile_size, 1/))
+  
+    swe_snd_land = 0.  
+    where(tile%land_frac(:,:,itile) > 0.) swe_snd_land = tile%snow_depth(:,:,itile)/tile%land_frac(:,:,itile)
+    status = nf90_inq_varid(ncid, "snodl", varid)
+    status = nf90_put_var(ncid, varid , swe_snd_land(:,:)   , &
       start = (/1,1,1/), count = (/namelist%tile_size, namelist%tile_size, 1/))
 
     status = nf90_inq_varid(ncid, "snowxy", varid)
