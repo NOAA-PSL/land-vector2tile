@@ -174,7 +174,7 @@ contains
         tile%temperature_soil(ix,iy,:,itile)    = vector%temperature_soil(iloc,:)
         tile%soil_moisture_total(ix,iy,:,itile) = vector%soil_moisture_total(iloc,:) 
         tile%slmsk(ix,iy,itile)                 = 1.
-        tile%ice_frac(ix,iy,itile)              = 0.                                   !10.20.25 added 0 fice at land locations for gfsv17
+        tile%ice_frac(ix,iy,itile)              = 0.      ! 0 fice at land locations
         tile%soil_moisture_liquid(ix,iy,:,itile)= vector%soil_moisture_liquid(iloc,:)
         tile%temperature_ground(ix,iy,itile)    = vector%temperature_ground(iloc)
       end if
@@ -429,12 +429,9 @@ contains
   integer             :: itile
   logical             :: file_exists
 
-  snd_name = "snwdph"
-  swe_name = "sheleg"
-  if (namelist%gfsv17) then 
-      snd_name = "snodl"
-      swe_name = "weasdl"
-  endif
+  ! Oct 2025: GFSv17 vars used exclusively
+  snd_name = "snodl"
+  swe_name = "weasdl"
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Create tile file name
@@ -695,7 +692,8 @@ contains
   integer             :: itile
   integer             :: ncid, varid, status, i
   integer             :: dim_id_xdim, dim_id_ydim, dim_id_soil, dim_id_snow, dim_id_snso, dim_id_time
-  
+  double precision    :: swe_snd_land(namelist%tile_size, namelist%tile_size)   ! swe/snd over land
+
   do itile = 1, 6
 
     !write(tile_filename,'(a17,a19,a5,i1,a3)') "ufs_land_restart.", date, ".tile", itile, ".nc"
@@ -753,9 +751,7 @@ contains
   
 ! Define variables in the file.
 
-    ! note: we write the snow_depth/swe variables from the vector restart as both snodl & snwdph /sheleg & weasdl in the tile for now
-    ! snwdph/sheleg may be removed later on if needed
-    
+    ! weasdl and snodl are required by GDASApp,so add them to tile outputs besides sheleg and snwdph   
     status = nf90_def_var(ncid, "weasdl", NF90_DOUBLE,    & 
       (/dim_id_xdim,dim_id_ydim,dim_id_time/), varid)
       if (status /= nf90_noerr) call handle_err(status)
@@ -855,21 +851,28 @@ contains
     status = nf90_put_var(ncid, varid ,(/(i, i=1, 7)/) )
 
 ! Start writing restart file
-  
-    status = nf90_inq_varid(ncid, "weasdl", varid)
-    status = nf90_put_var(ncid, varid , tile%swe(:,:,itile)   , &
-      start = (/1,1,1/), count = (/namelist%tile_size, namelist%tile_size, 1/))
-
+    
+    ! snow_depth/swe variables from the vector restart are grid cell averages
+    ! scaled by land_frac to get weasdl and snodl
+    
     status = nf90_inq_varid(ncid, "sheleg", varid)
     status = nf90_put_var(ncid, varid , tile%swe(:,:,itile)   , &
       start = (/1,1,1/), count = (/namelist%tile_size, namelist%tile_size, 1/))
-      
-    status = nf90_inq_varid(ncid, "snodl", varid)
-    status = nf90_put_var(ncid, varid , tile%snow_depth(:,:,itile)   , &
+    
+    swe_snd_land = 0.   !tile%swe(:,:,itile)
+    where(tile%land_frac(:,:,itile) > 0.) swe_snd_land = tile%swe(:,:,itile)/tile%land_frac(:,:,itile)
+    status = nf90_inq_varid(ncid, "weasdl", varid)
+    status = nf90_put_var(ncid, varid , swe_snd_land(:,:)   , &                 !weasdl = swe_grid/land_frac
       start = (/1,1,1/), count = (/namelist%tile_size, namelist%tile_size, 1/))
-
+    
     status = nf90_inq_varid(ncid, "snwdph", varid)
     status = nf90_put_var(ncid, varid , tile%snow_depth(:,:,itile)   , &
+      start = (/1,1,1/), count = (/namelist%tile_size, namelist%tile_size, 1/))
+  
+    swe_snd_land = 0.  
+    where(tile%land_frac(:,:,itile) > 0.) swe_snd_land = tile%snow_depth(:,:,itile)/tile%land_frac(:,:,itile)
+    status = nf90_inq_varid(ncid, "snodl", varid)
+    status = nf90_put_var(ncid, varid , swe_snd_land(:,:)   , &
       start = (/1,1,1/), count = (/namelist%tile_size, namelist%tile_size, 1/))
 
     status = nf90_inq_varid(ncid, "snowxy", varid)
