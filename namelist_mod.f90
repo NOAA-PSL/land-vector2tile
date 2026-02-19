@@ -18,6 +18,7 @@ module namelist_mod
     character*256      :: lndp_output_file = ""
     character(len=128) :: lndp_var_list(max_n_var_lndp)
     integer            :: n_var_lndp
+    logical            :: update_existing_tiles
   end type namelist_type
 
 contains
@@ -40,12 +41,15 @@ contains
     character(len=128)  :: lndp_var_list(max_n_var_lndp)
     integer             :: n_var_lndp
     integer             :: k
+    logical             :: update_existing_tiles
+    
 
     namelist / run_setup  / direction, tile_path, tile_fstub, tile_size,  restart_date, vector_restart_path, &
                             tile_restart_path, output_path, static_filename, &
-                            lndp_layout, lndp_input_file, lndp_output_file, lndp_var_list, n_var_lndp
+                            lndp_layout, lndp_input_file, lndp_output_file, lndp_var_list, n_var_lndp, update_existing_tiles
 
     lndp_var_list = 'XXX'
+    update_existing_tiles = .false.
 
     open(30, file=namelist%namelist_name, form="formatted")
      read(30, run_setup)
@@ -64,6 +68,7 @@ contains
     namelist%lndp_layout         = lndp_layout
     namelist%lndp_input_file     = lndp_input_file
     namelist%lndp_output_file    = lndp_output_file
+    namelist%update_existing_tiles  = update_existing_tiles
 
     n_var_lndp= 0
     do k =1,size(lndp_var_list)
