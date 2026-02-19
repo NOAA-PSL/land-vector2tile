@@ -602,7 +602,7 @@ contains
   inquire(file=vector_filename, exist=file_exists)
   
   if(.not.file_exists) then 
-    print*, trim(vector_filename), " does not exist5"
+    print*, trim(vector_filename), " does not exist"
     print*, "Check paths and file name"
     stop 10
   end if
@@ -694,6 +694,8 @@ contains
   integer             :: dim_id_xdim, dim_id_ydim, dim_id_soil, dim_id_snow, dim_id_snso, dim_id_time
   double precision    :: swe_snd_land(namelist%tile_size, namelist%tile_size)   ! swe/snd over land
 
+  logical             :: file_exists
+
   do itile = 1, 6
 
     !write(tile_filename,'(a17,a19,a5,i1,a3)') "ufs_land_restart.", date, ".tile", itile, ".nc"
@@ -701,6 +703,19 @@ contains
         date(1:4), date(6:7), date(9:10),".",date(12:13), "0000.sfc_data.tile",itile,".nc"
 
     tile_filename = trim(namelist%output_path)//trim(tile_filename)
+
+   if (namelist%update_existing_tiles) then
+   
+    inquire(file=tile_filename, exist=file_exists)
+    if(.not.file_exists) then 
+      print*, trim(tile_filename), " does not exist"
+      print*, "Check namelist setting (update existing file) and paths and file name "
+      stop 10
+    end if
+    status = nf90_open(tile_filename, NF90_WRITE, ncid)
+    if (status /= nf90_noerr) call handle_err(status)
+    
+   else   ! create new file (default) 
     
     print*, "Writing tile file: ", trim(tile_filename)
 
@@ -747,7 +762,6 @@ contains
     status = nf90_def_var(ncid, "zaxis_4", NF90_DOUBLE,    &
       (/dim_id_snso/), varid)
     if (status /= nf90_noerr) call handle_err(status)
-
   
 ! Define variables in the file.
 
@@ -823,7 +837,6 @@ contains
 
     status = nf90_enddef(ncid)
 
-
 ! fill dimension variables 
 
     status = nf90_inq_varid(ncid, "Time", varid)
@@ -849,7 +862,9 @@ contains
     status = nf90_inq_varid(ncid, "zaxis_4", varid)
     if (status /= nf90_noerr) call handle_err(status)
     status = nf90_put_var(ncid, varid ,(/(i, i=1, 7)/) )
-
+    
+   endif ! create new file
+   
 ! Start writing restart file
     
     ! snow_depth/swe variables from the vector restart are grid cell averages
@@ -934,9 +949,10 @@ contains
     status = nf90_inq_varid(ncid, "tgxy", varid)
     status = nf90_put_var(ncid, varid , tile%temperature_ground(:,:,itile)   , &
       start = (/1,1,1/), count = (/namelist%tile_size, namelist%tile_size, 1/))
-      
-  status = nf90_close(ncid)
-
+   
+    status = nf90_close(ncid)
+    if (status /= nf90_noerr) call handle_err(status)
+   
   end do
   
   end subroutine WriteTileRestart
