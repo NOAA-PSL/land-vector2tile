@@ -946,9 +946,9 @@ contains
       start = (/1                , 1                , 1, 1/), &
       count = (/namelist%tile_size, namelist%tile_size, 4, 1/))
 
-    status = nf90_inq_varid(ncid, "tgxy", varid)
-    status = nf90_put_var(ncid, varid , tile%temperature_ground(:,:,itile)   , &
-      start = (/1,1,1/), count = (/namelist%tile_size, namelist%tile_size, 1/))
+!    status = nf90_inq_varid(ncid, "tgxy", varid)
+!    status = nf90_put_var(ncid, varid , tile%temperature_ground(:,:,itile)   , &
+!      start = (/1,1,1/), count = (/namelist%tile_size, namelist%tile_size, 1/))
    
     status = nf90_close(ncid)
     if (status /= nf90_noerr) call handle_err(status)
