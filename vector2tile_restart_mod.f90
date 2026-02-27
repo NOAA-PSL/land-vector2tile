@@ -859,7 +859,6 @@ contains
     status = nf90_put_var(ncid, varid , tile%swe(:,:,itile)   , &
       start = (/1,1,1/), count = (/namelist%tile_size, namelist%tile_size, 1/))
     
-    swe_snd_land = tile%swe(:,:,itile) !identical to sheleg
     status = nf90_inq_varid(ncid, "weasdl", varid)
     status = nf90_put_var(ncid, varid , tile%swe(:,:,itile)  , & 
       start = (/1,1,1/), count = (/namelist%tile_size, namelist%tile_size, 1/))
@@ -868,7 +867,6 @@ contains
     status = nf90_put_var(ncid, varid , tile%snow_depth(:,:,itile)   , &
       start = (/1,1,1/), count = (/namelist%tile_size, namelist%tile_size, 1/))
   
-    swe_snd_land = tile%snow_depth(:,:,itile) !identical to snwdph
     status = nf90_inq_varid(ncid, "snodl", varid)
     status = nf90_put_var(ncid, varid ,  tile%snow_depth(:,:,itile)   , &
       start = (/1,1,1/), count = (/namelist%tile_size, namelist%tile_size, 1/))
