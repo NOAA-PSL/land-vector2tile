@@ -429,7 +429,7 @@ contains
   integer             :: itile
   logical             :: file_exists
 
-  ! Oct 2025: GFSv17 vars used exclusively
+  ! GFSv17 and onwards use snodl and weasdl exclusively
   snd_name = "snodl"
   swe_name = "weasdl"
 
@@ -692,7 +692,6 @@ contains
   integer             :: itile
   integer             :: ncid, varid, status, i
   integer             :: dim_id_xdim, dim_id_ydim, dim_id_soil, dim_id_snow, dim_id_snso, dim_id_time
-  double precision    :: swe_snd_land(namelist%tile_size, namelist%tile_size)   ! swe/snd over land
 
   do itile = 1, 6
 
@@ -751,7 +750,10 @@ contains
   
 ! Define variables in the file.
 
-    ! weasdl and snodl are required by GDASApp,so add them to tile outputs besides sheleg and snwdph   
+    ! weasdl and snodl are required by GDASApp, so add them to tile outputs besides sheleg and snwdph   
+    ! ufs-land-driver simulates snow on land only, the output is called "snwdph" or "sheleg", but indeed
+    ! snwdph(sheleg) is essentially snodl (weasdl) output from the ufs-land-driver
+    ! So during vector2tile, weasdl=sheleg, snodl=snwdph
     status = nf90_def_var(ncid, "weasdl", NF90_DOUBLE,    & 
       (/dim_id_xdim,dim_id_ydim,dim_id_time/), varid)
       if (status /= nf90_noerr) call handle_err(status)
@@ -823,7 +825,6 @@ contains
 
     status = nf90_enddef(ncid)
 
-
 ! fill dimension variables 
 
     status = nf90_inq_varid(ncid, "Time", varid)
@@ -852,27 +853,24 @@ contains
 
 ! Start writing restart file
     
-    ! snow_depth/swe variables from the vector restart are grid cell averages
-    ! scaled by land_frac to get weasdl and snodl
+    ! snow_depth/swe variables from the vector restart are land-only estimates
     
     status = nf90_inq_varid(ncid, "sheleg", varid)
     status = nf90_put_var(ncid, varid , tile%swe(:,:,itile)   , &
       start = (/1,1,1/), count = (/namelist%tile_size, namelist%tile_size, 1/))
     
-    swe_snd_land = 0.   !tile%swe(:,:,itile)
-    where(tile%land_frac(:,:,itile) > 0.) swe_snd_land = tile%swe(:,:,itile)/tile%land_frac(:,:,itile)
+    swe_snd_land = tile%swe(:,:,itile) !identical to sheleg
     status = nf90_inq_varid(ncid, "weasdl", varid)
-    status = nf90_put_var(ncid, varid , swe_snd_land(:,:)   , &                 !weasdl = swe_grid/land_frac
+    status = nf90_put_var(ncid, varid , tile%swe(:,:,itile)  , & 
       start = (/1,1,1/), count = (/namelist%tile_size, namelist%tile_size, 1/))
     
     status = nf90_inq_varid(ncid, "snwdph", varid)
     status = nf90_put_var(ncid, varid , tile%snow_depth(:,:,itile)   , &
       start = (/1,1,1/), count = (/namelist%tile_size, namelist%tile_size, 1/))
   
-    swe_snd_land = 0.  
-    where(tile%land_frac(:,:,itile) > 0.) swe_snd_land = tile%snow_depth(:,:,itile)/tile%land_frac(:,:,itile)
+    swe_snd_land = tile%snow_depth(:,:,itile) !identical to snwdph
     status = nf90_inq_varid(ncid, "snodl", varid)
-    status = nf90_put_var(ncid, varid , swe_snd_land(:,:)   , &
+    status = nf90_put_var(ncid, varid ,  tile%snow_depth(:,:,itile)   , &
       start = (/1,1,1/), count = (/namelist%tile_size, namelist%tile_size, 1/))
 
     status = nf90_inq_varid(ncid, "snowxy", varid)
