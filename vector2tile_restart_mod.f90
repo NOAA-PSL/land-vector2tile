@@ -187,7 +187,7 @@ contains
         tile%ice_frac(ix,iy,itile)              = 0.      ! 0 fice at land locations
         tile%soil_moisture_liquid(ix,iy,:,itile)= vector%soil_moisture_liquid(iloc,:)
         tile%temperature_ground(ix,iy,itile)    = vector%temperature_ground(iloc)
-        tile%temperature_2m(ix,iy,:,itile)      = vector%temperature_2m(iloc)
+        tile%temperature_2m(ix,iy,itile)      = vector%temperature_2m(iloc)
         tile%spec_humidity_2m(ix,iy,itile)      = vector%spec_humidity_2m(iloc)
       end if
       
