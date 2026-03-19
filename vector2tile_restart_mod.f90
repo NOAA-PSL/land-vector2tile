@@ -21,6 +21,9 @@ module vector2tile_restart_mod
 ! needed for JEDI QC of SMAP data
     double precision, allocatable :: soil_moisture_liquid(:,:)
     double precision, allocatable :: temperature_ground (:)
+! near surface obs assimilation 
+    double precision, allocatable :: temperature_2m(:)
+    double precision, allocatable :: spec_humidity_2m(:)
   end type vector_type    
 
   type tile_type
@@ -42,6 +45,9 @@ module vector2tile_restart_mod
 ! needed for JEDI QC of SMAP data
     double precision, allocatable :: soil_moisture_liquid        (:,:,:,:)
     double precision, allocatable :: temperature_ground (:,:,:) 
+! near surface obs assimilation 
+    double precision, allocatable :: temperature_2m(:,:,:)
+    double precision, allocatable :: spec_humidity_2m(:,:,:)
   end type tile_type    
   
 contains   
@@ -88,6 +94,8 @@ contains
   allocate(tile%vegetation_type    (namelist%tile_size,namelist%tile_size,6))
   allocate(tile%soil_moisture_liquid (namelist%tile_size,namelist%tile_size,4,6))
   allocate(tile%temperature_ground (namelist%tile_size,namelist%tile_size,6))
+  allocate(tile%temperature_2m    (namelist%tile_size,namelist%tile_size,6))
+  allocate(tile%spec_humidity_2m (namelist%tile_size,namelist%tile_size,6))
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Read FV3 tile information
@@ -136,6 +144,8 @@ contains
   allocate(vector%vegetation_type    (vector_length))
   allocate(vector%soil_moisture_liquid (vector_length,4))
   allocate(vector%temperature_ground (vector_length))
+  allocate(vector%temperature_2m     (vector_length))
+  allocate(vector%spec_humidity_2m   (vector_length))
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Direction of transfer branch
@@ -177,6 +187,8 @@ contains
         tile%ice_frac(ix,iy,itile)              = 0.      ! 0 fice at land locations
         tile%soil_moisture_liquid(ix,iy,:,itile)= vector%soil_moisture_liquid(iloc,:)
         tile%temperature_ground(ix,iy,itile)    = vector%temperature_ground(iloc)
+        tile%temperature_2m(ix,iy,itile)      = vector%temperature_2m(iloc)
+        tile%spec_humidity_2m(ix,iy,itile)      = vector%spec_humidity_2m(iloc)
       end if
       
     end do
@@ -226,6 +238,8 @@ contains
         vector%soil_moisture_total(iloc,:) = tile%soil_moisture_total(ix,iy,:,itile)
         vector%soil_moisture_liquid(iloc,:)= tile%soil_moisture_liquid(ix,iy,:,itile)
         vector%temperature_ground(iloc)    = tile%temperature_ground(ix,iy,itile)
+        vector%temperature_2m(iloc)        = tile%temperature_2m(ix,iy,itile)
+        vector%spec_humidity_2m(iloc)      = tile%spec_humidity_2m(ix,iy,itile)
       end if
       
     end do
@@ -387,6 +401,22 @@ contains
         call handle_err(status)
   endif
   status = nf90_get_var(ncid, varid , vector%temperature_ground , &
+      start = (/1,1/), count = (/vector_length, 1/))
+
+  status = nf90_inq_varid(ncid, "temperature_2m", varid)
+  if (status /= nf90_noerr) then
+        print *, 'temperature_2m variable missing from vector file'
+        call handle_err(status)
+  endif
+  status = nf90_get_var(ncid, varid , vector%temperature_2m , &
+      start = (/1,1/), count = (/vector_length, 1/))
+
+  status = nf90_inq_varid(ncid, "spec_humidity_2m", varid)
+  if (status /= nf90_noerr) then
+        print *, 'spec_humidity_2m variable missing from vector file'
+        call handle_err(status)
+  endif
+  status = nf90_get_var(ncid, varid , vector%spec_humidity_2m , &
       start = (/1,1/), count = (/vector_length, 1/))
 
   status = nf90_close(ncid)
@@ -573,6 +603,22 @@ contains
     status = nf90_get_var(ncid, varid , tile%ice_frac(:,:,itile)   , &
       start = (/1,1,1/), count = (/namelist%tile_size, namelist%tile_size, 1/))
 
+    status = nf90_inq_varid(ncid, "t2m", varid)
+    if (status /= nf90_noerr) then
+        print *, 't2m variable missing from tile file'
+        call handle_err(status)
+    endif
+    status = nf90_get_var(ncid, varid , tile%temperature_2m(:,:,itile)   , &
+      start = (/1,1,1/), count = (/namelist%tile_size, namelist%tile_size, 1/))
+
+    status = nf90_inq_varid(ncid, "q2m", varid)
+    if (status /= nf90_noerr) then
+        print *, 'q2m variable missing from tile file'
+        call handle_err(status)
+    endif
+    status = nf90_get_var(ncid, varid , tile%spec_humidity_2m(:,:,itile)   , &
+      start = (/1,1,1/), count = (/namelist%tile_size, namelist%tile_size, 1/))
+
     status = nf90_close(ncid)
 
   end do
@@ -602,7 +648,7 @@ contains
   inquire(file=vector_filename, exist=file_exists)
   
   if(.not.file_exists) then 
-    print*, trim(vector_filename), " does not exist5"
+    print*, trim(vector_filename), " does not exist"
     print*, "Check paths and file name"
     stop 10
   end if
@@ -675,6 +721,14 @@ contains
 
   status = nf90_inq_varid(ncid, "temperature_ground", varid)
   status = nf90_put_var(ncid, varid , vector%temperature_ground  , &
+      start = (/1,1/), count = (/vector_length, 1/))
+
+  status = nf90_inq_varid(ncid, "temperature_2m", varid)
+  status = nf90_put_var(ncid, varid , vector%temperature_2m  , &
+      start = (/1,1/), count = (/vector_length, 1/))
+
+  status = nf90_inq_varid(ncid, "spec_humidity_2m", varid)
+  status = nf90_put_var(ncid, varid , vector%spec_humidity_2m  , &
       start = (/1,1/), count = (/vector_length, 1/))
 
   status = nf90_close(ncid)
@@ -823,6 +877,14 @@ contains
       (/dim_id_xdim,dim_id_ydim,dim_id_time/), varid)
       if (status /= nf90_noerr) call handle_err(status)
 
+    status = nf90_def_var(ncid, "t2m", NF90_DOUBLE,   &
+      (/dim_id_xdim,dim_id_ydim,dim_id_time/), varid)
+      if (status /= nf90_noerr) call handle_err(status)
+
+    status = nf90_def_var(ncid, "q2m", NF90_DOUBLE,   &
+      (/dim_id_xdim,dim_id_ydim,dim_id_time/), varid)
+      if (status /= nf90_noerr) call handle_err(status)
+      
     status = nf90_enddef(ncid)
 
 ! fill dimension variables 
@@ -929,6 +991,14 @@ contains
 
     status = nf90_inq_varid(ncid, "tgxy", varid)
     status = nf90_put_var(ncid, varid , tile%temperature_ground(:,:,itile)   , &
+      start = (/1,1,1/), count = (/namelist%tile_size, namelist%tile_size, 1/))
+
+    status = nf90_inq_varid(ncid, "t2m", varid)
+    status = nf90_put_var(ncid, varid , tile%temperature_2m(:,:,itile)   , &
+      start = (/1,1,1/), count = (/namelist%tile_size, namelist%tile_size, 1/))
+
+    status = nf90_inq_varid(ncid, "q2m", varid)
+    status = nf90_put_var(ncid, varid , tile%spec_humidity_2m(:,:,itile)   , &
       start = (/1,1,1/), count = (/namelist%tile_size, namelist%tile_size, 1/))
       
   status = nf90_close(ncid)
