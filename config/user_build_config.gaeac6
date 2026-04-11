@@ -1,0 +1,10 @@
+
+#===============================================================================
+#  Placeholder options for hera
+#===============================================================================
+
+ COMPILERF90    =       ftn    #ifort
+ FREESOURCE     =       
+ F90FLAGS       =       
+ NETCDFMOD      =       -I${netcdf_fortran_ROOT}/include
+ NETCDFLIB      =       -L${netcdf_fortran_ROOT}/lib -lnetcdff

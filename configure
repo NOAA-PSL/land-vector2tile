@@ -8,7 +8,8 @@
 
      print "   1. hera \n";
      print "   2. orion \n";
-     print "   3. gfortran compiler serial \n";
+     print "   3. gaeac6 \n";
+     print "   4. gfortran compiler serial \n";
      print "   0. exit only \n";
 
      printf "\nEnter selection : " ;
@@ -32,6 +33,12 @@
             }
 
   elsif ($response == 3) {
+              # Orion settings
+              system "cp config/user_build_config.gaeac6 user_build_config";
+              print "\n load necessary modules from land_mods_gaeac6 \n\n\n";
+            }
+
+  elsif ($response == 4) {
               # Mike's Mac settings
               system "cp config/user_build_config.gfortran.serial user_build_config"; 
             }
