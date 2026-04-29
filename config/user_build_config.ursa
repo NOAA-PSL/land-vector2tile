@@ -3,8 +3,8 @@
 #  Placeholder options for hera
 #===============================================================================
 
- COMPILERF90    =       ifort
+ COMPILERF90    =       mpiifort
  FREESOURCE     =       
- F90FLAGS       =       
+ F90FLAGS       =       -diag-disable=10448
  NETCDFMOD      =       -I${netcdf_fortran_ROOT}/include
  NETCDFLIB      =       -L${netcdf_fortran_ROOT}/lib -lnetcdff

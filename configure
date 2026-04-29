@@ -6,7 +6,7 @@
   }else {
      print "Please select from following predefined environments: \n\n";
 
-     print "   1. hera \n";
+     print "   1. ursa \n";
      print "   2. orion \n";
      print "   3. gaeac6 \n";
      print "   4. gfortran compiler serial \n";
@@ -20,7 +20,7 @@
 
   if ($response == 1) {
               # Hera settings
-              system "cp config/user_build_config.hera user_build_config"; 
+              system "cp config/user_build_config.ursa user_build_config"; 
               print "\n load necessary modules:\n"; 
               print "\n module load intel/2022.1.2 netcdf/4.7.0 \n\n\n"; 
             }
