@@ -118,7 +118,7 @@ contains
 
     status = nf90_inq_varid(ncid, "land_frac", varid)
     status = nf90_get_var(ncid, varid , tile%land_frac(:,:,itile))
-  
+    
     status = nf90_close(ncid)
     
     vector_length = vector_length + count(tile%land_frac(:,:,itile) > 0)
@@ -1022,9 +1022,13 @@ contains
   integer             :: itile
   integer             :: ncid, varid, status, i
   integer             :: dim_id_xdim, dim_id_ydim, dim_id_soil, dim_id_snow, dim_id_snso, dim_id_time
+  character*20             :: time_iso_str
+    
+    !"2024-06-09T18:00:00Z"   !date=yyyy, "-", mm, "-", dd, "_", hh, "-", nn, "-", ss
+    wite(time_iso_str, '(a10,a1,a2,a7)') date(1:10), "T", date(12:13), ":00:00Z"
 
-    !enkfgdas.t12z.csg_sfc.f000.nc
-    write(tile_filename,'(a1,a2,a17)')  "t",date(12:13),"z.csg_sfc.f000.nc"
+    !enkfgdas.t12z.csg_sfc.f006.nc
+    write(tile_filename,'(a1,a2,a17)') "t", date(12:13), "z.csg_sfc.f000.nc"
 
     tile_filename = trim(namelist%s3h_runtype)//"."//trim(tile_filename)
 
@@ -1032,171 +1036,37 @@ contains
     
     print*, "Writing tile file: ", trim(tile_filename)
 
-    status = nf90_create(tile_filename, NF90_CLOBBER, ncid)
-      if (status /= nf90_noerr) call handle_err(status)
-
-! Define dimensions in the file.
-      ! Define header attributes for CDL compatibility
-        status = nf90_put_att(ncid, NF90_GLOBAL, "source", "UFS Land Model")
-        status = nf90_put_att(ncid, NF90_GLOBAL, "institution", "NOAA/NWS/NCEP")
-        status = nf90_put_att(ncid, NF90_GLOBAL, "Conventions", "CF-1.6")
-        status = nf90_put_att(ncid, NF90_GLOBAL, "history", "Created by WriteS3History")
-        status = nf90_put_att(ncid, NF90_GLOBAL, "title", "UFS Land Model S3 History")
+    call s3history_header(tile_filename, namelist%tile_size, ncid)
 
 
-    status = nf90_def_dim(ncid, "xaxis_1"          , namelist%tile_size , dim_id_xdim)
-      if (status /= nf90_noerr) call handle_err(status)
-    status = nf90_def_dim(ncid, "yaxis_1"          , namelist%tile_size , dim_id_ydim)
-      if (status /= nf90_noerr) call handle_err(status)
-    status = nf90_def_dim(ncid, "zaxis_2"   , 4                  , dim_id_soil)
-      if (status /= nf90_noerr) call handle_err(status)
-    status = nf90_def_dim(ncid, "zaxis_3"   , 3                  , dim_id_snow)
-      if (status /= nf90_noerr) call handle_err(status)
-    status = nf90_def_dim(ncid, "zaxis_4"   , 7                  , dim_id_snso)
-      if (status /= nf90_noerr) call handle_err(status)
-    status = nf90_def_dim(ncid, "Time"          , NF90_UNLIMITED     , dim_id_time)
-      if (status /= nf90_noerr) call handle_err(status)
+! Start writing history file
 
-! define dimension variables (for JEDI) 
+    !only time_iso and lat/lon not written in s3history_header()
 
-    status = nf90_def_var(ncid, "Time", NF90_DOUBLE,    &
-      (/dim_id_time/), varid)
+    status = nf90_inq_varid(ncid, "time_iso", varid)
     if (status /= nf90_noerr) call handle_err(status)
+    status = nf90_put_var(ncid, varid, time_iso_str )
 
-    status = nf90_def_var(ncid, "xaxis_1", NF90_DOUBLE,    &
-      (/dim_id_xdim/), varid)
-    if (status /= nf90_noerr) call handle_err(status)
-
-    status = nf90_def_var(ncid, "yaxis_1", NF90_DOUBLE,    &
-      (/dim_id_ydim/), varid)
-    if (status /= nf90_noerr) call handle_err(status)
-
-    status = nf90_def_var(ncid, "zaxis_2", NF90_DOUBLE,    &
-      (/dim_id_soil/), varid)
-    if (status /= nf90_noerr) call handle_err(status)
-
-    status = nf90_def_var(ncid, "zaxis_3", NF90_DOUBLE,    &
-      (/dim_id_snow/), varid)
-    if (status /= nf90_noerr) call handle_err(status)
-
-    status = nf90_def_var(ncid, "zaxis_4", NF90_DOUBLE,    &
-      (/dim_id_snso/), varid)
-    if (status /= nf90_noerr) call handle_err(status)
-
-  
-! Define variables in the file.
-
-    ! weasdl and snodl are required by GDASApp, so add them to tile outputs besides sheleg and snwdph   
-    ! ufs-land-driver simulates snow on land only, the output is called "snwdph" or "sheleg", but indeed
-    ! snwdph(sheleg) is essentially snodl (weasdl) output from the ufs-land-driver
-    ! So during vector2tile, weasdl=sheleg, snodl=snwdph
-    status = nf90_def_var(ncid, "weasdl", NF90_DOUBLE,    & 
-      (/dim_id_xdim,dim_id_ydim,dim_id_time/), varid)
-      if (status /= nf90_noerr) call handle_err(status)
-
-    status = nf90_def_var(ncid, "sheleg", NF90_DOUBLE,    & ! note: this is weasd in vector file.
-      (/dim_id_xdim,dim_id_ydim,dim_id_time/), varid)
-      if (status /= nf90_noerr) call handle_err(status)
-    
-    status = nf90_def_var(ncid, "snodl", NF90_DOUBLE,   &
-      (/dim_id_xdim,dim_id_ydim,dim_id_time/), varid)
-      if (status /= nf90_noerr) call handle_err(status)
-
-    status = nf90_def_var(ncid, "snwdph", NF90_DOUBLE,   &
-      (/dim_id_xdim,dim_id_ydim,dim_id_time/), varid)
-      if (status /= nf90_noerr) call handle_err(status)
-
-    status = nf90_def_var(ncid, "snowxy", NF90_DOUBLE,   &
-      (/dim_id_xdim,dim_id_ydim,dim_id_time/), varid)
-      if (status /= nf90_noerr) call handle_err(status)
-
-    status = nf90_def_var(ncid, "sneqvoxy", NF90_DOUBLE, &
-      (/dim_id_xdim,dim_id_ydim,dim_id_time/), varid)
-      if (status /= nf90_noerr) call handle_err(status)
-
-    status = nf90_def_var(ncid, "zsnsoxy", NF90_DOUBLE,  &
-      (/dim_id_xdim,dim_id_ydim,dim_id_snso,dim_id_time/), varid)
-      if (status /= nf90_noerr) call handle_err(status)
-
-    status = nf90_def_var(ncid, "tsnoxy", NF90_DOUBLE,   &
-      (/dim_id_xdim,dim_id_ydim,dim_id_snow,dim_id_time/), varid)
-      if (status /= nf90_noerr) call handle_err(status)
-
-    status = nf90_def_var(ncid, "snicexy", NF90_DOUBLE,  &
-      (/dim_id_xdim,dim_id_ydim,dim_id_snow,dim_id_time/), varid)
-      if (status /= nf90_noerr) call handle_err(status)
-
-    status = nf90_def_var(ncid, "snliqxy", NF90_DOUBLE,  &
-      (/dim_id_xdim,dim_id_ydim,dim_id_snow,dim_id_time/), varid)
-      if (status /= nf90_noerr) call handle_err(status)
-
-    status = nf90_def_var(ncid, "stc", NF90_DOUBLE,      &
-      (/dim_id_xdim,dim_id_ydim,dim_id_soil,dim_id_time/), varid)
-      if (status /= nf90_noerr) call handle_err(status)
-
-    status = nf90_def_var(ncid, "smc", NF90_DOUBLE,   &
-      (/dim_id_xdim,dim_id_ydim,dim_id_soil,dim_id_time/), varid) 
-      if (status /= nf90_noerr) call handle_err(status)
-
-    status = nf90_def_var(ncid, "slmsk", NF90_DOUBLE,   &
-      (/dim_id_xdim,dim_id_ydim,dim_id_time/), varid)
-      if (status /= nf90_noerr) call handle_err(status)
-      
-   status = nf90_def_var(ncid, "vtype", NF90_DOUBLE,   &
-      (/dim_id_xdim,dim_id_ydim,dim_id_time/), varid)
-      if (status /= nf90_noerr) call handle_err(status)
-
-    status = nf90_def_var(ncid, "slc", NF90_DOUBLE,   &
-      (/dim_id_xdim,dim_id_ydim,dim_id_soil,dim_id_time/), varid)
-      if (status /= nf90_noerr) call handle_err(status)
-
-    status = nf90_def_var(ncid, "tgxy", NF90_DOUBLE,   &
-      (/dim_id_xdim,dim_id_ydim,dim_id_time/), varid)
-      if (status /= nf90_noerr) call handle_err(status)
-
-    ! fraction of ice
-    status = nf90_def_var(ncid, "fice", NF90_DOUBLE,   &
-      (/dim_id_xdim,dim_id_ydim,dim_id_time/), varid)
-      if (status /= nf90_noerr) call handle_err(status)
-
-    status = nf90_def_var(ncid, "t2m", NF90_DOUBLE,   &
-      (/dim_id_xdim,dim_id_ydim,dim_id_time/), varid)
-      if (status /= nf90_noerr) call handle_err(status)
-
-    status = nf90_def_var(ncid, "q2m", NF90_DOUBLE,   &
-      (/dim_id_xdim,dim_id_ydim,dim_id_time/), varid)
-      if (status /= nf90_noerr) call handle_err(status)
-      
-    status = nf90_enddef(ncid)
-
-! fill dimension variables 
-
-    status = nf90_inq_varid(ncid, "Time", varid)
-    if (status /= nf90_noerr) call handle_err(status)
-    status = nf90_put_var(ncid, varid ,(/1/) )
-
-    status = nf90_inq_varid(ncid, "xaxis_1", varid)
+    status = nf90_inq_varid(ncid, "lon", varid)
     if (status /= nf90_noerr) call handle_err(status)
     status = nf90_put_var(ncid, varid ,(/(i, i=1, namelist%tile_size)/) )
 
-    status = nf90_inq_varid(ncid, "yaxis_1", varid)
+    status = nf90_inq_varid(ncid, "lat", varid)
     if (status /= nf90_noerr) call handle_err(status)
     status = nf90_put_var(ncid, varid ,(/(i, i=1, namelist%tile_size)/) )
 
-    status = nf90_inq_varid(ncid, "zaxis_2", varid)
-    if (status /= nf90_noerr) call handle_err(status)
-    status = nf90_put_var(ncid, varid ,(/(i, i=1, 4)/) )
 
-    status = nf90_inq_varid(ncid, "zaxis_3", varid)
-    if (status /= nf90_noerr) call handle_err(status)
-    status = nf90_put_var(ncid, varid ,(/(i, i=1, 3)/) )
+    status = nf90_inq_varid(ncid, "land", varid)
+    status = nf90_put_var(ncid, varid , tile%slmsk(:,:,itile)   , &
+      start = (/1,1,1/), count = (/namelist%tile_size, namelist%tile_size, 1/))
 
-    status = nf90_inq_varid(ncid, "zaxis_4", varid)
-    if (status /= nf90_noerr) call handle_err(status)
-    status = nf90_put_var(ncid, varid ,(/(i, i=1, 7)/) )
 
-! Start writing restart file
-    
+! slmsk => land "sea-land-ice mask (0-sea, 1-land, 2-ice)
+!include in output, so can be used to id which tile grid cells are being simulated
+    status = nf90_inq_varid(ncid, "land", varid)
+    status = nf90_put_var(ncid, varid , tile%slmsk(:,:,itile)   , &
+      start = (/1,1,1/), count = (/namelist%tile_size, namelist%tile_size, 1/))
+
     ! snow_depth/swe variables from the vector restart are land-only estimates
     
     status = nf90_inq_varid(ncid, "sheleg", varid)
