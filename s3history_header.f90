@@ -15,7 +15,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   integer, intent(out)           :: ncid
   character(len=*), intent(in)   :: filename
 
-  integer :: status, i
+  integer :: status, i, varid
   character(len=*), parameter :: version = '1.0'
 
   ! ========== DIMENSION IDs ==========
@@ -57,6 +57,45 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   integer :: varid_xt, varid_xtts, varid_xu, varid_xv, varid_xz
   integer :: varid_xzts, varid_zc
 
+  real, dimension(127)  :: pfull_arr = (/ 0.01278146, 0.02033404, 0.03177342, 0.04878282, 0.07361853, &
+    0.1092587, 0.1595392, 0.2292877, 0.3244748, 0.4523215, 0.621393, &
+    0.8416426, 1.124391, 1.482229, 1.928879, 2.478976, 3.147755, 3.950706, &
+    4.903192, 6.020019, 7.315024, 8.800693, 10.48782, 12.38528, 14.49982, &
+    16.83605, 19.39651, 22.18178, 25.1909, 28.42169, 31.87125, 35.53667, &
+    39.41547, 43.5065, 47.81049, 52.33096, 57.07489, 62.0536, 67.28372, &
+    72.78603, 78.57906, 84.6755, 91.08662, 97.82327, 104.8966, 112.317, &
+    120.0947, 128.2394, 136.7599, 145.6647, 154.9614, 164.6561, 174.7544, &
+    185.2607, 196.1772, 207.5055, 219.2458, 231.3948, 243.9499, 256.9046, &
+    270.2505, 283.9787, 298.0768, 312.5292, 327.3211, 342.4328, 357.8438, &
+    373.5309, 389.4691, 405.6328, 421.9922, 438.5189, 455.1801, 471.9445, &
+    488.7802, 505.6521, 522.5253, 539.3687, 556.1478, 572.8293, 589.3785, &
+    605.7676, 621.9653, 637.9419, 653.6714, 669.1287, 684.2931, 699.1375, &
+    713.6463, 727.8004, 741.5905, 755.0012, 768.0211, 780.6387, 792.8536, &
+    804.6616, 816.0591, 827.0449, 837.6163, 847.7832, 857.5391, 866.9023, &
+    875.8699, 884.4552, 892.6566, 900.492, 907.9752, 915.0985, 921.8845,  &
+    928.3532, 934.4923, 940.35, 945.8849, 951.1477, 956.139, 960.8926,    &
+    965.3583, 969.6144, 973.6393, 977.4311, 981.0247, 984.4229, 987.6138, &
+    990.6548, 993.5134, 996.228, 998.7807 /)
+
+  real, dimension(128)  :: phalf_arr = (/ 0.00999, 0.01605, 0.02532, 0.03924, 0.05976, 0.08946999, 0.13177, &
+    0.19096, 0.27243, 0.38276, 0.52984, 0.72293, 0.9726899, 1.2911, 1.69135, &
+    2.18767, 2.79506, 3.52894, 4.40481, 5.437819, 6.64236, 8.03164, 9.61734, &
+    11.40931, 13.41538, 15.64119, 18.09028, 20.76415, 23.66252, 26.78372,    &
+    30.1251, 33.68363, 37.45646, 41.44164, 45.63881, 50.04995, 54.68017,     &
+    59.53848, 64.63863, 70.0, 75.64512, 81.58802, 87.83998, 94.41219, 101.3156, &
+    108.561, 116.1587, 124.1187, 132.4502, 141.1621, 150.2622, 159.7575,     &
+    169.6539, 179.9563, 190.6681, 201.7915, 213.3268, 225.2729, 237.627,     &
+    250.384, 263.5371, 277.0775, 290.9939, 305.2732, 319.8999, 334.8564,     &
+    350.1229, 365.6774, 381.4962, 397.5533, 413.8212, 430.2708, 446.8714,    &
+    463.5916, 480.3984, 497.2587, 514.1387, 531.0043, 547.8218, 564.5579,    &
+    581.1795, 597.655, 613.9536, 630.0458, 645.904, 661.502, 676.8154,       &
+    691.8221, 706.5022, 720.8374, 734.8121, 748.4125, 761.6276, 774.4476,    &
+    786.8656, 798.8764, 810.4767, 821.6652, 832.4418, 842.8087, 852.7689,    &
+    862.3271, 871.4892, 880.262, 888.653, 896.671, 904.3252, 911.6256,       &
+    918.5823, 925.206, 931.5078, 937.4987, 943.1902, 948.5933, 953.7195,     &
+    958.5799, 963.1857, 967.5478, 971.677, 975.5837, 979.2783, 982.7707,     &
+    986.0706, 989.1874, 992.1302, 994.9077, 997.5282, 1000.0 /)
+
   ! ========== CREATE FILE & DEFINE DIMENSIONS ==========
   status = nf90_create(filename, NF90_CLOBBER, ncid)
   if (status /= nf90_noerr) call handle_err(status)
@@ -77,7 +116,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! ========== DEFINE VARIABLES & ATTRIBUTES ==========
-
+  print*, "Defining variables"
   ! grid_xt - 
   status = nf90_def_var(ncid, 'grid_xt', NF90_DOUBLE, (/ dimid_grid_xt /), varid_grid_xt)
   if (status /= nf90_noerr) call handle_err(status)
@@ -91,7 +130,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! pfull - ref full pressure level
-  status = nf90_def_var(ncid, 'pfull', NF90_REAL, (/ dimid_pfull /), varid_pfull)
+  status = nf90_def_var(ncid, 'pfull', NF90_DOUBLE, (/ dimid_pfull /), varid_pfull)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_pfull, 'cartesian_axis', 'Z')
   if (status /= nf90_noerr) call handle_err(status)
@@ -105,7 +144,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! phalf - ref half pressure level
-  status = nf90_def_var(ncid, 'phalf', NF90_REAL, (/ dimid_phalf /), varid_phalf)
+  status = nf90_def_var(ncid, 'phalf', NF90_DOUBLE, (/ dimid_phalf /), varid_phalf)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_phalf, 'cartesian_axis', 'Z')
   if (status /= nf90_noerr) call handle_err(status)
@@ -163,7 +202,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! acond - Aerodynamic conductance
-  status = nf90_def_var(ncid, 'acond', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_acond)
+  status = nf90_def_var(ncid, 'acond', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_acond)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_acond, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -183,7 +222,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! albdo_ave - surface albedo
-  status = nf90_def_var(ncid, 'albdo_ave', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_albdo_ave)
+  status = nf90_def_var(ncid, 'albdo_ave', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_albdo_ave)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_albdo_ave, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -203,7 +242,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! alnsf - mean nir albedo with strong cosz dependency
-  status = nf90_def_var(ncid, 'alnsf', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_alnsf)
+  status = nf90_def_var(ncid, 'alnsf', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_alnsf)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_alnsf, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -223,7 +262,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! alnwf - mean nir albedo with weak cosz dependency
-  status = nf90_def_var(ncid, 'alnwf', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_alnwf)
+  status = nf90_def_var(ncid, 'alnwf', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_alnwf)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_alnwf, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -243,7 +282,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! alvsf - mean vis albedo with strong cosz dependency
-  status = nf90_def_var(ncid, 'alvsf', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_alvsf)
+  status = nf90_def_var(ncid, 'alvsf', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_alvsf)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_alvsf, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -263,7 +302,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! alvwf - mean vis albedo with weak cosz dependency
-  status = nf90_def_var(ncid, 'alvwf', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_alvwf)
+  status = nf90_def_var(ncid, 'alvwf', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_alvwf)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_alvwf, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -283,7 +322,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! aod550 - total aerosol optical depth at 550 nm
-  status = nf90_def_var(ncid, 'aod550', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_aod550)
+  status = nf90_def_var(ncid, 'aod550', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_aod550)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_aod550, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -303,7 +342,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! bc_aod550 - soot aerosol optical depth at 550 nm
-  status = nf90_def_var(ncid, 'bc_aod550', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_bc_aod550)
+  status = nf90_def_var(ncid, 'bc_aod550', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_bc_aod550)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_bc_aod550, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -323,7 +362,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! c0 - nsst coefficient1 to calculate d(tz)/d(ts)
-  status = nf90_def_var(ncid, 'c0', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_c0)
+  status = nf90_def_var(ncid, 'c0', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_c0)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_c0, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -343,7 +382,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! cd - nsst coefficient2 to calculate d(tz)/d(ts)
-  status = nf90_def_var(ncid, 'cd', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_cd)
+  status = nf90_def_var(ncid, 'cd', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_cd)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_cd, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -363,7 +402,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! cduvb_ave - Clear sky UV-B Downward Solar Flux
-  status = nf90_def_var(ncid, 'cduvb_ave', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_cduvb_ave)
+  status = nf90_def_var(ncid, 'cduvb_ave', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_cduvb_ave)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_cduvb_ave, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -383,7 +422,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! cldfra - Instantaneous 3D Cloud Fraction
-  status = nf90_def_var(ncid, 'cldfra', NF90_REAL, (/ dimid_time, dimid_tile, dimid_pfull, dimid_grid_yt, dimid_grid_xt /), varid_cldfra)
+  status = nf90_def_var(ncid, 'cldfra', NF90_DOUBLE, (/ dimid_time, dimid_tile, dimid_pfull, dimid_grid_yt, dimid_grid_xt /), varid_cldfra)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_cldfra, '_QuantizeBitRoundNumberOfSignificantBits', '14')
   if (status /= nf90_noerr) call handle_err(status)
@@ -405,7 +444,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! cnvprcp - convective rain at this time step
-  status = nf90_def_var(ncid, 'cnvprcp', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_cnvprcp)
+  status = nf90_def_var(ncid, 'cnvprcp', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_cnvprcp)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_cnvprcp, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -425,7 +464,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! cnwat - canopy water (cnwat in gfs data)
-  status = nf90_def_var(ncid, 'cnwat', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_cnwat)
+  status = nf90_def_var(ncid, 'cnwat', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_cnwat)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_cnwat, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -445,7 +484,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! cpofp - Percent frozen precipitation
-  status = nf90_def_var(ncid, 'cpofp', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_cpofp)
+  status = nf90_def_var(ncid, 'cpofp', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_cpofp)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_cpofp, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -465,7 +504,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! cprat_ave - averaged surface convective precipitation rate
-  status = nf90_def_var(ncid, 'cprat_ave', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_cprat_ave)
+  status = nf90_def_var(ncid, 'cprat_ave', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_cprat_ave)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_cprat_ave, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -485,7 +524,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! cpratb_ave - averaged bucket surface convective precipitation rate
-  status = nf90_def_var(ncid, 'cpratb_ave', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_cpratb_ave)
+  status = nf90_def_var(ncid, 'cpratb_ave', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_cpratb_ave)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_cpratb_ave, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -505,7 +544,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! crain - instantaneous categorical rain
-  status = nf90_def_var(ncid, 'crain', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_crain)
+  status = nf90_def_var(ncid, 'crain', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_crain)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_crain, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -525,7 +564,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! csdlf - Clear Sky Downward Long Wave Flux
-  status = nf90_def_var(ncid, 'csdlf', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_csdlf)
+  status = nf90_def_var(ncid, 'csdlf', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_csdlf)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_csdlf, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -545,7 +584,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! csdsf - Clear Sky Downward Short Wave Flux
-  status = nf90_def_var(ncid, 'csdsf', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_csdsf)
+  status = nf90_def_var(ncid, 'csdsf', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_csdsf)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_csdsf, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -565,7 +604,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! csulf - Clear Sky Upward Long Wave Flux
-  status = nf90_def_var(ncid, 'csulf', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_csulf)
+  status = nf90_def_var(ncid, 'csulf', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_csulf)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_csulf, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -585,7 +624,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! csulftoa - Clear Sky Upward Long Wave Flux at toa
-  status = nf90_def_var(ncid, 'csulftoa', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_csulftoa)
+  status = nf90_def_var(ncid, 'csulftoa', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_csulftoa)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_csulftoa, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -605,7 +644,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! csusf - Clear Sky Upward Short Wave Flux
-  status = nf90_def_var(ncid, 'csusf', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_csusf)
+  status = nf90_def_var(ncid, 'csusf', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_csusf)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_csusf, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -625,7 +664,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! csusftoa - Clear Sky Upward Short Wave Flux at toa
-  status = nf90_def_var(ncid, 'csusftoa', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_csusftoa)
+  status = nf90_def_var(ncid, 'csusftoa', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_csusftoa)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_csusftoa, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -645,7 +684,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! cwork_aveclm - cloud work function (valid only with sas)
-  status = nf90_def_var(ncid, 'cwork_aveclm', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_cwork_aveclm)
+  status = nf90_def_var(ncid, 'cwork_aveclm', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_cwork_aveclm)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_cwork_aveclm, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -665,7 +704,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! dconv - nsst thickness of free convection layer
-  status = nf90_def_var(ncid, 'dconv', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_dconv)
+  status = nf90_def_var(ncid, 'dconv', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_dconv)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_dconv, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -685,7 +724,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! dlwrf - instantaneous surface downward longwave flux
-  status = nf90_def_var(ncid, 'dlwrf', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_dlwrf)
+  status = nf90_def_var(ncid, 'dlwrf', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_dlwrf)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_dlwrf, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -705,7 +744,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! dlwrf_ave - surface downward longwave flux
-  status = nf90_def_var(ncid, 'dlwrf_ave', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_dlwrf_ave)
+  status = nf90_def_var(ncid, 'dlwrf_ave', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_dlwrf_ave)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_dlwrf_ave, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -725,7 +764,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! dswrf - instantaneous surface downward shortwave flux
-  status = nf90_def_var(ncid, 'dswrf', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_dswrf)
+  status = nf90_def_var(ncid, 'dswrf', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_dswrf)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_dswrf, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -745,7 +784,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! dswrf_ave - averaged surface downward shortwave flux
-  status = nf90_def_var(ncid, 'dswrf_ave', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_dswrf_ave)
+  status = nf90_def_var(ncid, 'dswrf_ave', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_dswrf_ave)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_dswrf_ave, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -765,7 +804,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! dswrf_avetoa - top of atmos downward shortwave flux
-  status = nf90_def_var(ncid, 'dswrf_avetoa', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_dswrf_avetoa)
+  status = nf90_def_var(ncid, 'dswrf_avetoa', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_dswrf_avetoa)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_dswrf_avetoa, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -785,7 +824,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! dtcool - nsst sub-layer cooling amount
-  status = nf90_def_var(ncid, 'dtcool', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_dtcool)
+  status = nf90_def_var(ncid, 'dtcool', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_dtcool)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_dtcool, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -805,7 +844,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! du_aod550 - dust aerosol optical depth at 550 nm
-  status = nf90_def_var(ncid, 'du_aod550', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_du_aod550)
+  status = nf90_def_var(ncid, 'du_aod550', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_du_aod550)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_du_aod550, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -825,7 +864,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! duvb_ave - UV-B Downward Solar Flux
-  status = nf90_def_var(ncid, 'duvb_ave', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_duvb_ave)
+  status = nf90_def_var(ncid, 'duvb_ave', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_duvb_ave)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_duvb_ave, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -845,7 +884,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! evbs_ave - Direct Evaporation from Bare Soil
-  status = nf90_def_var(ncid, 'evbs_ave', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_evbs_ave)
+  status = nf90_def_var(ncid, 'evbs_ave', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_evbs_ave)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_evbs_ave, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -865,7 +904,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! evcw_ave - Canopy water evaporation
-  status = nf90_def_var(ncid, 'evcw_ave', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_evcw_ave)
+  status = nf90_def_var(ncid, 'evcw_ave', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_evcw_ave)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_evcw_ave, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -885,7 +924,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! f10m - 10-meter wind speed divided by lowest model wind speed
-  status = nf90_def_var(ncid, 'f10m', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_f10m)
+  status = nf90_def_var(ncid, 'f10m', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_f10m)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_f10m, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -905,7 +944,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! facsf - fractional coverage with strong cosz dependency
-  status = nf90_def_var(ncid, 'facsf', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_facsf)
+  status = nf90_def_var(ncid, 'facsf', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_facsf)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_facsf, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -925,7 +964,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! facwf - fractional coverage with weak cosz dependency
-  status = nf90_def_var(ncid, 'facwf', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_facwf)
+  status = nf90_def_var(ncid, 'facwf', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_facwf)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_facwf, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -945,7 +984,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! ffhh - fh parameter from PBL scheme
-  status = nf90_def_var(ncid, 'ffhh', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_ffhh)
+  status = nf90_def_var(ncid, 'ffhh', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_ffhh)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_ffhh, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -965,7 +1004,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! ffmm - fm parameter from PBL scheme
-  status = nf90_def_var(ncid, 'ffmm', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_ffmm)
+  status = nf90_def_var(ncid, 'ffmm', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_ffmm)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_ffmm, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -985,7 +1024,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! fldcp - Field Capacity (volumetric)
-  status = nf90_def_var(ncid, 'fldcp', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_fldcp)
+  status = nf90_def_var(ncid, 'fldcp', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_fldcp)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_fldcp, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -1005,7 +1044,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! fricv - uustar surface frictional wind
-  status = nf90_def_var(ncid, 'fricv', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_fricv)
+  status = nf90_def_var(ncid, 'fricv', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_fricv)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_fricv, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -1025,7 +1064,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! gflux - instantaneous surface ground heat flux
-  status = nf90_def_var(ncid, 'gflux', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_gflux)
+  status = nf90_def_var(ncid, 'gflux', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_gflux)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_gflux, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -1045,7 +1084,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! gflux_ave - surface ground heat flux
-  status = nf90_def_var(ncid, 'gflux_ave', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_gflux_ave)
+  status = nf90_def_var(ncid, 'gflux_ave', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_gflux_ave)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_gflux_ave, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -1065,7 +1104,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! hgt_hyblev1 - layer 1 height
-  status = nf90_def_var(ncid, 'hgt_hyblev1', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_hgt_hyblev1)
+  status = nf90_def_var(ncid, 'hgt_hyblev1', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_hgt_hyblev1)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_hgt_hyblev1, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -1085,7 +1124,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! hpbl - surface planetary boundary layer height
-  status = nf90_def_var(ncid, 'hpbl', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_hpbl)
+  status = nf90_def_var(ncid, 'hpbl', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_hpbl)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_hpbl, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -1105,7 +1144,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! icec - surface ice concentration (ice=1
-  status = nf90_def_var(ncid, 'icec', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_icec)
+  status = nf90_def_var(ncid, 'icec', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_icec)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_icec, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -1125,7 +1164,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! icetk - sea ice thickness (icetk in gfs_data)
-  status = nf90_def_var(ncid, 'icetk', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_icetk)
+  status = nf90_def_var(ncid, 'icetk', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_icetk)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_icetk, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -1145,7 +1184,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! land - sea-land-ice mask (0-sea, 1-land, 2-ice)
-  status = nf90_def_var(ncid, 'land', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_land)
+  status = nf90_def_var(ncid, 'land', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_land)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_land, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -1165,7 +1204,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! lhtfl - instantaneous surface latent heat net flux
-  status = nf90_def_var(ncid, 'lhtfl', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_lhtfl)
+  status = nf90_def_var(ncid, 'lhtfl', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_lhtfl)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_lhtfl, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -1185,7 +1224,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! lhtfl_ave - surface latent heat flux
-  status = nf90_def_var(ncid, 'lhtfl_ave', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_lhtfl_ave)
+  status = nf90_def_var(ncid, 'lhtfl_ave', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_lhtfl_ave)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_lhtfl_ave, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -1205,7 +1244,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! nbdsf_ave - Near IR Beam Downward Solar Flux
-  status = nf90_def_var(ncid, 'nbdsf_ave', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_nbdsf_ave)
+  status = nf90_def_var(ncid, 'nbdsf_ave', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_nbdsf_ave)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_nbdsf_ave, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -1225,7 +1264,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! nddsf_ave - Near IR Diffuse Downward Solar Flux
-  status = nf90_def_var(ncid, 'nddsf_ave', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_nddsf_ave)
+  status = nf90_def_var(ncid, 'nddsf_ave', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_nddsf_ave)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_nddsf_ave, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -1245,7 +1284,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! oc_aod550 - waso aerosol optical depth at 550 nm
-  status = nf90_def_var(ncid, 'oc_aod550', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_oc_aod550)
+  status = nf90_def_var(ncid, 'oc_aod550', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_oc_aod550)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_oc_aod550, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -1265,7 +1304,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! orog - surface geopotential height
-  status = nf90_def_var(ncid, 'orog', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_orog)
+  status = nf90_def_var(ncid, 'orog', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_orog)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_orog, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -1285,7 +1324,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! pevpr - instantaneous surface potential evaporation
-  status = nf90_def_var(ncid, 'pevpr', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_pevpr)
+  status = nf90_def_var(ncid, 'pevpr', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_pevpr)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_pevpr, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -1305,7 +1344,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! pevpr_ave - averaged potential evaporation rate
-  status = nf90_def_var(ncid, 'pevpr_ave', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_pevpr_ave)
+  status = nf90_def_var(ncid, 'pevpr_ave', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_pevpr_ave)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_pevpr_ave, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -1325,7 +1364,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! prate_ave - surface precipitation rate
-  status = nf90_def_var(ncid, 'prate_ave', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_prate_ave)
+  status = nf90_def_var(ncid, 'prate_ave', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_prate_ave)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_prate_ave, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -1345,7 +1384,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! prateb_ave - bucket surface precipitation rate
-  status = nf90_def_var(ncid, 'prateb_ave', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_prateb_ave)
+  status = nf90_def_var(ncid, 'prateb_ave', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_prateb_ave)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_prateb_ave, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -1365,7 +1404,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! pres_avehcb - pressure high cloud bottom level
-  status = nf90_def_var(ncid, 'pres_avehcb', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_pres_avehcb)
+  status = nf90_def_var(ncid, 'pres_avehcb', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_pres_avehcb)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_pres_avehcb, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -1385,7 +1424,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! pres_avehct - pressure high cloud top level
-  status = nf90_def_var(ncid, 'pres_avehct', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_pres_avehct)
+  status = nf90_def_var(ncid, 'pres_avehct', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_pres_avehct)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_pres_avehct, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -1405,7 +1444,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! pres_avelcb - pressure low cloud bottom level
-  status = nf90_def_var(ncid, 'pres_avelcb', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_pres_avelcb)
+  status = nf90_def_var(ncid, 'pres_avelcb', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_pres_avelcb)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_pres_avelcb, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -1425,7 +1464,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! pres_avelct - pressure low cloud top level
-  status = nf90_def_var(ncid, 'pres_avelct', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_pres_avelct)
+  status = nf90_def_var(ncid, 'pres_avelct', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_pres_avelct)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_pres_avelct, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -1445,7 +1484,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! pres_avemcb - pressure middle cloud bottom level
-  status = nf90_def_var(ncid, 'pres_avemcb', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_pres_avemcb)
+  status = nf90_def_var(ncid, 'pres_avemcb', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_pres_avemcb)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_pres_avemcb, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -1465,7 +1504,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! pres_avemct - pressure middle cloud top level
-  status = nf90_def_var(ncid, 'pres_avemct', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_pres_avemct)
+  status = nf90_def_var(ncid, 'pres_avemct', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_pres_avemct)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_pres_avemct, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -1485,7 +1524,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! prescnvclb - pressure at convective cloud bottom level
-  status = nf90_def_var(ncid, 'prescnvclb', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_prescnvclb)
+  status = nf90_def_var(ncid, 'prescnvclb', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_prescnvclb)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_prescnvclb, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -1505,7 +1544,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! prescnvclt - pressure at convective cloud top level
-  status = nf90_def_var(ncid, 'prescnvclt', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_prescnvclt)
+  status = nf90_def_var(ncid, 'prescnvclt', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_prescnvclt)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_prescnvclt, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -1525,7 +1564,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! pressfc - surface pressure
-  status = nf90_def_var(ncid, 'pressfc', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_pressfc)
+  status = nf90_def_var(ncid, 'pressfc', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_pressfc)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_pressfc, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -1545,7 +1584,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! pwat - atmos column precipitable water
-  status = nf90_def_var(ncid, 'pwat', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_pwat)
+  status = nf90_def_var(ncid, 'pwat', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_pwat)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_pwat, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -1565,7 +1604,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! qrain - nsst sensible heat flux due to rainfall
-  status = nf90_def_var(ncid, 'qrain', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_qrain)
+  status = nf90_def_var(ncid, 'qrain', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_qrain)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_qrain, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -1585,7 +1624,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! sbsno_ave - Sublimation (evaporation from snow)
-  status = nf90_def_var(ncid, 'sbsno_ave', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_sbsno_ave)
+  status = nf90_def_var(ncid, 'sbsno_ave', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_sbsno_ave)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_sbsno_ave, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -1605,7 +1644,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! sfcr - surface roughness
-  status = nf90_def_var(ncid, 'sfcr', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_sfcr)
+  status = nf90_def_var(ncid, 'sfcr', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_sfcr)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_sfcr, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -1625,7 +1664,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! sfexc - Exchange Coefficient
-  status = nf90_def_var(ncid, 'sfexc', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_sfexc)
+  status = nf90_def_var(ncid, 'sfexc', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_sfexc)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_sfexc, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -1645,7 +1684,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! shdmax - maximum fractional coverage of green vegetation
-  status = nf90_def_var(ncid, 'shdmax', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_shdmax)
+  status = nf90_def_var(ncid, 'shdmax', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_shdmax)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_shdmax, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -1665,7 +1704,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! shdmin - minimum fractional coverage of green vegetation
-  status = nf90_def_var(ncid, 'shdmin', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_shdmin)
+  status = nf90_def_var(ncid, 'shdmin', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_shdmin)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_shdmin, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -1685,7 +1724,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! shtfl - instantaneous surface sensible heat net flux
-  status = nf90_def_var(ncid, 'shtfl', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_shtfl)
+  status = nf90_def_var(ncid, 'shtfl', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_shtfl)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_shtfl, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -1705,7 +1744,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! shtfl_ave - surface sensible heat flux
-  status = nf90_def_var(ncid, 'shtfl_ave', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_shtfl_ave)
+  status = nf90_def_var(ncid, 'shtfl_ave', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_shtfl_ave)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_shtfl_ave, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -1725,7 +1764,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! sltyp - surface slope type
-  status = nf90_def_var(ncid, 'sltyp', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_sltyp)
+  status = nf90_def_var(ncid, 'sltyp', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_sltyp)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_sltyp, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -1745,7 +1784,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! snoalb - maximum snow albedo in fraction
-  status = nf90_def_var(ncid, 'snoalb', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_snoalb)
+  status = nf90_def_var(ncid, 'snoalb', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_snoalb)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_snoalb, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -1765,7 +1804,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! snod - surface snow depth
-  status = nf90_def_var(ncid, 'snod', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_snod)
+  status = nf90_def_var(ncid, 'snod', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_snod)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_snod, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -1785,7 +1824,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! snohf - Snow Phase Change Heat Flux
-  status = nf90_def_var(ncid, 'snohf', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_snohf)
+  status = nf90_def_var(ncid, 'snohf', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_snohf)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_snohf, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -1805,7 +1844,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! snowc_ave - snow cover - GFS lsm
-  status = nf90_def_var(ncid, 'snowc_ave', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_snowc_ave)
+  status = nf90_def_var(ncid, 'snowc_ave', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_snowc_ave)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_snowc_ave, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -1825,7 +1864,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! soill1 - liquid soil mositure at layer-1
-  status = nf90_def_var(ncid, 'soill1', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_soill1)
+  status = nf90_def_var(ncid, 'soill1', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_soill1)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_soill1, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -1845,7 +1884,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! soill2 - liquid soil mositure at layer-2
-  status = nf90_def_var(ncid, 'soill2', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_soill2)
+  status = nf90_def_var(ncid, 'soill2', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_soill2)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_soill2, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -1865,7 +1904,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! soill3 - liquid soil mositure at layer-3
-  status = nf90_def_var(ncid, 'soill3', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_soill3)
+  status = nf90_def_var(ncid, 'soill3', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_soill3)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_soill3, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -1885,7 +1924,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! soill4 - liquid soil mositure at layer-4
-  status = nf90_def_var(ncid, 'soill4', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_soill4)
+  status = nf90_def_var(ncid, 'soill4', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_soill4)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_soill4, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -1905,7 +1944,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! soilm - total column soil moisture content
-  status = nf90_def_var(ncid, 'soilm', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_soilm)
+  status = nf90_def_var(ncid, 'soilm', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_soilm)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_soilm, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -1925,7 +1964,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! soilt1 - soil temperature unknown layer 1
-  status = nf90_def_var(ncid, 'soilt1', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_soilt1)
+  status = nf90_def_var(ncid, 'soilt1', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_soilt1)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_soilt1, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -1945,7 +1984,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! soilt2 - soil temperature unknown layer 2
-  status = nf90_def_var(ncid, 'soilt2', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_soilt2)
+  status = nf90_def_var(ncid, 'soilt2', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_soilt2)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_soilt2, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -1965,7 +2004,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! soilt3 - soil temperature unknown layer 3
-  status = nf90_def_var(ncid, 'soilt3', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_soilt3)
+  status = nf90_def_var(ncid, 'soilt3', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_soilt3)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_soilt3, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -1985,7 +2024,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! soilt4 - soil temperature unknown layer 4
-  status = nf90_def_var(ncid, 'soilt4', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_soilt4)
+  status = nf90_def_var(ncid, 'soilt4', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_soilt4)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_soilt4, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -2005,7 +2044,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! soilw1 - volumetric soil moisture unknown layer 1
-  status = nf90_def_var(ncid, 'soilw1', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_soilw1)
+  status = nf90_def_var(ncid, 'soilw1', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_soilw1)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_soilw1, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -2025,7 +2064,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! soilw2 - volumetric soil moisture unknown layer 2
-  status = nf90_def_var(ncid, 'soilw2', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_soilw2)
+  status = nf90_def_var(ncid, 'soilw2', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_soilw2)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_soilw2, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -2045,7 +2084,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! soilw3 - volumetric soil moisture unknown layer 3
-  status = nf90_def_var(ncid, 'soilw3', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_soilw3)
+  status = nf90_def_var(ncid, 'soilw3', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_soilw3)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_soilw3, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -2065,7 +2104,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! soilw4 - volumetric soil moisture unknown layer 4
-  status = nf90_def_var(ncid, 'soilw4', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_soilw4)
+  status = nf90_def_var(ncid, 'soilw4', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_soilw4)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_soilw4, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -2085,7 +2124,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! sotyp - soil type in integer 1-9
-  status = nf90_def_var(ncid, 'sotyp', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_sotyp)
+  status = nf90_def_var(ncid, 'sotyp', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_sotyp)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_sotyp, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -2105,7 +2144,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! spfh2m - 2m specific humidity
-  status = nf90_def_var(ncid, 'spfh2m', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_spfh2m)
+  status = nf90_def_var(ncid, 'spfh2m', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_spfh2m)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_spfh2m, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -2125,7 +2164,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! spfh_hyblev1 - layer 1 specific humidity
-  status = nf90_def_var(ncid, 'spfh_hyblev1', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_spfh_hyblev1)
+  status = nf90_def_var(ncid, 'spfh_hyblev1', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_spfh_hyblev1)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_spfh_hyblev1, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -2145,7 +2184,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! spfhmax_max2m - maximum specific humidity
-  status = nf90_def_var(ncid, 'spfhmax_max2m', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_spfhmax_max2m)
+  status = nf90_def_var(ncid, 'spfhmax_max2m', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_spfhmax_max2m)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_spfhmax_max2m, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -2165,7 +2204,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! spfhmin_min2m - minimum specific humidity
-  status = nf90_def_var(ncid, 'spfhmin_min2m', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_spfhmin_min2m)
+  status = nf90_def_var(ncid, 'spfhmin_min2m', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_spfhmin_min2m)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_spfhmin_min2m, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -2185,7 +2224,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! ss_aod550 - salt aerosol optical depth at 550 nm
-  status = nf90_def_var(ncid, 'ss_aod550', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_ss_aod550)
+  status = nf90_def_var(ncid, 'ss_aod550', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_ss_aod550)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_ss_aod550, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -2205,7 +2244,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! ssrun_acc - Accumulated surface storm water runoff
-  status = nf90_def_var(ncid, 'ssrun_acc', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_ssrun_acc)
+  status = nf90_def_var(ncid, 'ssrun_acc', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_ssrun_acc)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_ssrun_acc, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -2225,7 +2264,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! su_aod550 - suso aerosol optical depth at 550 nm
-  status = nf90_def_var(ncid, 'su_aod550', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_su_aod550)
+  status = nf90_def_var(ncid, 'su_aod550', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_su_aod550)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_su_aod550, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -2245,7 +2284,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! sunsd_acc - Sunshine Duration
-  status = nf90_def_var(ncid, 'sunsd_acc', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_sunsd_acc)
+  status = nf90_def_var(ncid, 'sunsd_acc', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_sunsd_acc)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_sunsd_acc, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -2265,7 +2304,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! tcdc_avebndcl - boundary layer cloud layer total cloud cover
-  status = nf90_def_var(ncid, 'tcdc_avebndcl', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_tcdc_avebndcl)
+  status = nf90_def_var(ncid, 'tcdc_avebndcl', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_tcdc_avebndcl)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_tcdc_avebndcl, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -2285,7 +2324,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! tcdc_aveclm - atmos column total cloud cover
-  status = nf90_def_var(ncid, 'tcdc_aveclm', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_tcdc_aveclm)
+  status = nf90_def_var(ncid, 'tcdc_aveclm', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_tcdc_aveclm)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_tcdc_aveclm, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -2305,7 +2344,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! tcdc_avehcl - high cloud level total cloud cover
-  status = nf90_def_var(ncid, 'tcdc_avehcl', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_tcdc_avehcl)
+  status = nf90_def_var(ncid, 'tcdc_avehcl', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_tcdc_avehcl)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_tcdc_avehcl, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -2325,7 +2364,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! tcdc_avelcl - low cloud level total cloud cover
-  status = nf90_def_var(ncid, 'tcdc_avelcl', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_tcdc_avelcl)
+  status = nf90_def_var(ncid, 'tcdc_avelcl', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_tcdc_avelcl)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_tcdc_avelcl, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -2345,7 +2384,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! tcdc_avemcl - mid cloud level total cloud cover
-  status = nf90_def_var(ncid, 'tcdc_avemcl', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_tcdc_avemcl)
+  status = nf90_def_var(ncid, 'tcdc_avemcl', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_tcdc_avemcl)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_tcdc_avemcl, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -2365,7 +2404,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! tcdccnvcl - convective cloud layer total cloud cover
-  status = nf90_def_var(ncid, 'tcdccnvcl', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_tcdccnvcl)
+  status = nf90_def_var(ncid, 'tcdccnvcl', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_tcdccnvcl)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_tcdccnvcl, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -2385,7 +2424,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! tg3 - deep soil temperature
-  status = nf90_def_var(ncid, 'tg3', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_tg3)
+  status = nf90_def_var(ncid, 'tg3', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_tg3)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_tg3, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -2405,7 +2444,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! tisfc - surface temperature over ice fraction
-  status = nf90_def_var(ncid, 'tisfc', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_tisfc)
+  status = nf90_def_var(ncid, 'tisfc', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_tisfc)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_tisfc, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -2425,7 +2464,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! tmax_max2m - max temperature at 2m height
-  status = nf90_def_var(ncid, 'tmax_max2m', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_tmax_max2m)
+  status = nf90_def_var(ncid, 'tmax_max2m', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_tmax_max2m)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_tmax_max2m, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -2445,7 +2484,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! tmin_min2m - min temperature at 2m height
-  status = nf90_def_var(ncid, 'tmin_min2m', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_tmin_min2m)
+  status = nf90_def_var(ncid, 'tmin_min2m', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_tmin_min2m)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_tmin_min2m, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -2465,7 +2504,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! tmp2m - 2m temperature
-  status = nf90_def_var(ncid, 'tmp2m', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_tmp2m)
+  status = nf90_def_var(ncid, 'tmp2m', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_tmp2m)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_tmp2m, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -2485,7 +2524,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! tmp_avehct - temperature high cloud top level
-  status = nf90_def_var(ncid, 'tmp_avehct', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_tmp_avehct)
+  status = nf90_def_var(ncid, 'tmp_avehct', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_tmp_avehct)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_tmp_avehct, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -2505,7 +2544,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! tmp_avelct - temperature low cloud top level
-  status = nf90_def_var(ncid, 'tmp_avelct', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_tmp_avelct)
+  status = nf90_def_var(ncid, 'tmp_avelct', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_tmp_avelct)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_tmp_avelct, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -2525,7 +2564,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! tmp_avemct - temperature middle cloud top level
-  status = nf90_def_var(ncid, 'tmp_avemct', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_tmp_avemct)
+  status = nf90_def_var(ncid, 'tmp_avemct', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_tmp_avemct)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_tmp_avemct, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -2545,7 +2584,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! tmp_hyblev1 - layer 1 temperature
-  status = nf90_def_var(ncid, 'tmp_hyblev1', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_tmp_hyblev1)
+  status = nf90_def_var(ncid, 'tmp_hyblev1', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_tmp_hyblev1)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_tmp_hyblev1, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -2565,7 +2604,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! tmpsfc - surface temperature
-  status = nf90_def_var(ncid, 'tmpsfc', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_tmpsfc)
+  status = nf90_def_var(ncid, 'tmpsfc', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_tmpsfc)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_tmpsfc, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -2585,7 +2624,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! tprcp - total time-step precipitation
-  status = nf90_def_var(ncid, 'tprcp', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_tprcp)
+  status = nf90_def_var(ncid, 'tprcp', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_tprcp)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_tprcp, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -2605,7 +2644,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! trans_ave - transpiration
-  status = nf90_def_var(ncid, 'trans_ave', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_trans_ave)
+  status = nf90_def_var(ncid, 'trans_ave', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_trans_ave)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_trans_ave, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -2625,7 +2664,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! tref - nsst reference or foundation temperature
-  status = nf90_def_var(ncid, 'tref', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_tref)
+  status = nf90_def_var(ncid, 'tref', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_tref)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_tref, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -2645,7 +2684,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! uflx_ave - surface zonal momentum flux
-  status = nf90_def_var(ncid, 'uflx_ave', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_uflx_ave)
+  status = nf90_def_var(ncid, 'uflx_ave', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_uflx_ave)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_uflx_ave, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -2665,7 +2704,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! ugrd10m - 10 meter u wind
-  status = nf90_def_var(ncid, 'ugrd10m', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_ugrd10m)
+  status = nf90_def_var(ncid, 'ugrd10m', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_ugrd10m)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_ugrd10m, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -2685,7 +2724,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! ugrd_hyblev1 - layer 1 zonal wind
-  status = nf90_def_var(ncid, 'ugrd_hyblev1', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_ugrd_hyblev1)
+  status = nf90_def_var(ncid, 'ugrd_hyblev1', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_ugrd_hyblev1)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_ugrd_hyblev1, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -2705,7 +2744,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! ulwrf - instantaneous surface upward longwave flux
-  status = nf90_def_var(ncid, 'ulwrf', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_ulwrf)
+  status = nf90_def_var(ncid, 'ulwrf', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_ulwrf)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_ulwrf, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -2725,7 +2764,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! ulwrf_ave - surface upward longwave flux
-  status = nf90_def_var(ncid, 'ulwrf_ave', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_ulwrf_ave)
+  status = nf90_def_var(ncid, 'ulwrf_ave', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_ulwrf_ave)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_ulwrf_ave, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -2745,7 +2784,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! ulwrf_avetoa - top of atmos upward longwave flux
-  status = nf90_def_var(ncid, 'ulwrf_avetoa', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_ulwrf_avetoa)
+  status = nf90_def_var(ncid, 'ulwrf_avetoa', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_ulwrf_avetoa)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_ulwrf_avetoa, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -2765,7 +2804,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! uswrf - instantaneous surface upward shortwave flux
-  status = nf90_def_var(ncid, 'uswrf', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_uswrf)
+  status = nf90_def_var(ncid, 'uswrf', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_uswrf)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_uswrf, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -2785,7 +2824,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! uswrf_ave - averaged surface upward shortwave flux
-  status = nf90_def_var(ncid, 'uswrf_ave', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_uswrf_ave)
+  status = nf90_def_var(ncid, 'uswrf_ave', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_uswrf_ave)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_uswrf_ave, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -2805,7 +2844,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! uswrf_avetoa - top of atmos upward shortwave flux
-  status = nf90_def_var(ncid, 'uswrf_avetoa', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_uswrf_avetoa)
+  status = nf90_def_var(ncid, 'uswrf_avetoa', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_uswrf_avetoa)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_uswrf_avetoa, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -2825,7 +2864,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! vbdsf_ave - Visible Beam Downward Solar Flux
-  status = nf90_def_var(ncid, 'vbdsf_ave', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_vbdsf_ave)
+  status = nf90_def_var(ncid, 'vbdsf_ave', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_vbdsf_ave)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_vbdsf_ave, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -2845,7 +2884,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! vddsf_ave - Visible Diffuse Downward Solar Flux
-  status = nf90_def_var(ncid, 'vddsf_ave', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_vddsf_ave)
+  status = nf90_def_var(ncid, 'vddsf_ave', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_vddsf_ave)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_vddsf_ave, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -2865,7 +2904,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! veg - vegetation fraction
-  status = nf90_def_var(ncid, 'veg', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_veg)
+  status = nf90_def_var(ncid, 'veg', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_veg)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_veg, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -2885,7 +2924,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! vflx_ave - surface meridional momentum flux
-  status = nf90_def_var(ncid, 'vflx_ave', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_vflx_ave)
+  status = nf90_def_var(ncid, 'vflx_ave', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_vflx_ave)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_vflx_ave, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -2905,7 +2944,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! vgrd10m - 10 meter v wind
-  status = nf90_def_var(ncid, 'vgrd10m', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_vgrd10m)
+  status = nf90_def_var(ncid, 'vgrd10m', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_vgrd10m)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_vgrd10m, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -2925,7 +2964,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! vgrd_hyblev1 - layer 1 meridional wind
-  status = nf90_def_var(ncid, 'vgrd_hyblev1', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_vgrd_hyblev1)
+  status = nf90_def_var(ncid, 'vgrd_hyblev1', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_vgrd_hyblev1)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_vgrd_hyblev1, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -2945,7 +2984,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! vtype - vegetation type in integer
-  status = nf90_def_var(ncid, 'vtype', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_vtype)
+  status = nf90_def_var(ncid, 'vtype', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_vtype)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_vtype, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -2965,7 +3004,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! w0 - nsst coefficient3 to calculate d(tz)/d(ts)
-  status = nf90_def_var(ncid, 'w0', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_w0)
+  status = nf90_def_var(ncid, 'w0', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_w0)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_w0, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -2985,7 +3024,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! watr_acc - total water runoff
-  status = nf90_def_var(ncid, 'watr_acc', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_watr_acc)
+  status = nf90_def_var(ncid, 'watr_acc', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_watr_acc)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_watr_acc, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -3005,7 +3044,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! wd - nsst coefficient4 to calculate d(tz)/d(ts)
-  status = nf90_def_var(ncid, 'wd', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_wd)
+  status = nf90_def_var(ncid, 'wd', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_wd)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_wd, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -3025,7 +3064,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! weasd - surface snow water equivalent
-  status = nf90_def_var(ncid, 'weasd', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_weasd)
+  status = nf90_def_var(ncid, 'weasd', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_weasd)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_weasd, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -3045,7 +3084,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! wilt - wiltimg point (volumetric)
-  status = nf90_def_var(ncid, 'wilt', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_wilt)
+  status = nf90_def_var(ncid, 'wilt', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_wilt)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_wilt, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -3065,7 +3104,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! xs - nsst salinity content in diurnal thermocline layer
-  status = nf90_def_var(ncid, 'xs', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_xs)
+  status = nf90_def_var(ncid, 'xs', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_xs)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_xs, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -3085,7 +3124,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! xt - nsst heat content in diurnal thermocline layer
-  status = nf90_def_var(ncid, 'xt', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_xt)
+  status = nf90_def_var(ncid, 'xt', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_xt)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_xt, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -3105,7 +3144,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! xtts - nsst d(xt)/d(ts)
-  status = nf90_def_var(ncid, 'xtts', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_xtts)
+  status = nf90_def_var(ncid, 'xtts', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_xtts)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_xtts, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -3125,7 +3164,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! xu - nsst u-current content in diurnal thermocline layer
-  status = nf90_def_var(ncid, 'xu', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_xu)
+  status = nf90_def_var(ncid, 'xu', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_xu)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_xu, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -3145,7 +3184,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! xv - nsst v-current content in diurnal thermocline layer
-  status = nf90_def_var(ncid, 'xv', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_xv)
+  status = nf90_def_var(ncid, 'xv', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_xv)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_xv, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -3165,7 +3204,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! xz - nsst diurnal thermocline layer thickness
-  status = nf90_def_var(ncid, 'xz', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_xz)
+  status = nf90_def_var(ncid, 'xz', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_xz)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_xz, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -3185,7 +3224,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! xzts - nsst d(xt)/d(ts)
-  status = nf90_def_var(ncid, 'xzts', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_xzts)
+  status = nf90_def_var(ncid, 'xzts', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_xzts)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_xzts, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -3205,7 +3244,7 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   if (status /= nf90_noerr) call handle_err(status)
 
   ! zc - nsst sub-layer cooling thickness
-  status = nf90_def_var(ncid, 'zc', NF90_REAL, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_zc)
+  status = nf90_def_var(ncid, 'zc', NF90_DOUBLE, (/ dimid_grid_xt, dimid_grid_yt, dimid_tile, dimid_time /), varid_zc)
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_zc, '_FillValue', '9.99e+20f')
   if (status /= nf90_noerr) call handle_err(status)
@@ -3224,9 +3263,35 @@ subroutine s3history_header(filename, tile_dimlen, ncid)
   status = nf90_put_att(ncid, varid_zc, 'grid_mapping', 'cubed_sphere')
   if (status /= nf90_noerr) call handle_err(status)
 
-  ! ========== END DEFINITION MODE & CLOSE FILE ==========
+  ! ========== END DEFINITION MODE ==========
   status = nf90_enddef(ncid)
   if (status /= nf90_noerr) call handle_err(status)
+
+  print*, "Putting dimension vars"
+
+  status = nf90_inq_varid(ncid, "grid_xt", varid)
+  if (status /= nf90_noerr) call handle_err(status)
+  status = nf90_put_var(ncid, varid ,(/(i, i=1, tile_dimlen)/) )
+
+  status = nf90_inq_varid(ncid, "grid_yt", varid)
+  if (status /= nf90_noerr) call handle_err(status)
+  status = nf90_put_var(ncid, varid ,(/(i, i=1, tile_dimlen)/) )
+
+  status = nf90_inq_varid(ncid, "pfull", varid)
+  if (status /= nf90_noerr) call handle_err(status)
+  status = nf90_put_var(ncid, varid, pfull_arr )
+
+  status = nf90_inq_varid(ncid, "phalf", varid)
+  if (status /= nf90_noerr) call handle_err(status)
+  status = nf90_put_var(ncid, varid, phalf_arr )
+
+  status = nf90_inq_varid(ncid, "time", varid)
+  if (status /= nf90_noerr) call handle_err(status)
+  status = nf90_put_var(ncid, varid, (/0/) )
+
+  status = nf90_inq_varid(ncid, "tile", varid)
+  if (status /= nf90_noerr) call handle_err(status)
+  status = nf90_put_var(ncid, varid, (/1, 2, 3, 4, 5, 6/) )
   
   !status = nf90_close(ncid)
   !if (status /= nf90_noerr) call handle_err(status)
