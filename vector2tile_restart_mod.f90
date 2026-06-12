@@ -49,7 +49,7 @@ module vector2tile_restart_mod
 ! near surface obs assimilation 
     double precision, allocatable :: temperature_2m(:,:,:)
     double precision, allocatable :: spec_humidity_2m(:,:,:)
-! needed by cube spehere history file
+! needed by cube sphere history file
     double precision, allocatable :: lat(:,:,:)
     double precision, allocatable :: lon(:,:,:)
    
