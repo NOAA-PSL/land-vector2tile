@@ -1045,7 +1045,7 @@ contains
  
     print*, "Creating history file: ", trim(tile_filename)
 
-    call csg_history_header(tile_filename, namelist%tile_size, ncid)
+    call csg_history_header(tile_filename, namelist%tile_size, namelist%npz, ncid)
 
     !only dimension vars time_iso and lat/lon not written in s3history_header()
     print*, "Writing time, lat, lon"
