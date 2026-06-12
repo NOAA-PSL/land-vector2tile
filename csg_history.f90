@@ -9,13 +9,13 @@ module csg_history
   ! Variables: 162
   ! ============================================================================
 
-  subroutine csg_history_header(filename, tile_dimlen, ncid)
+  subroutine csg_history_header(filename, tile_dimlen, npz, ncid)
  
   use netcdf
   implicit none
   
   
-  integer, intent(in)            :: tile_dimlen
+  integer, intent(in)            :: tile_dimlen, npz
   integer, intent(out)           :: ncid
   character(len=*), intent(in)   :: filename
 
@@ -61,7 +61,7 @@ module csg_history
   integer :: varid_xt, varid_xtts, varid_xu, varid_xv, varid_xz
   integer :: varid_xzts, varid_zc
 
-  real, dimension(127)  :: pfull_arr = (/ 0.01278146, 0.02033404, 0.03177342, 0.04878282, 0.07361853, &
+  real, dimension(npz)  :: pfull_arr = (/ 0.01278146, 0.02033404, 0.03177342, 0.04878282, 0.07361853, &
     0.1092587, 0.1595392, 0.2292877, 0.3244748, 0.4523215, 0.621393, &
     0.8416426, 1.124391, 1.482229, 1.928879, 2.478976, 3.147755, 3.950706, &
     4.903192, 6.020019, 7.315024, 8.800693, 10.48782, 12.38528, 14.49982, &
@@ -81,7 +81,7 @@ module csg_history
     965.3583, 969.6144, 973.6393, 977.4311, 981.0247, 984.4229, 987.6138, &
     990.6548, 993.5134, 996.228, 998.7807 /)
 
-  real, dimension(128)  :: phalf_arr = (/ 0.00999, 0.01605, 0.02532, 0.03924, 0.05976, 0.08946999, 0.13177, &
+  real, dimension(npz+1)  :: phalf_arr = (/ 0.00999, 0.01605, 0.02532, 0.03924, 0.05976, 0.08946999, 0.13177, &
     0.19096, 0.27243, 0.38276, 0.52984, 0.72293, 0.9726899, 1.2911, 1.69135, &
     2.18767, 2.79506, 3.52894, 4.40481, 5.437819, 6.64236, 8.03164, 9.61734, &
     11.40931, 13.41538, 15.64119, 18.09028, 20.76415, 23.66252, 26.78372,    &
