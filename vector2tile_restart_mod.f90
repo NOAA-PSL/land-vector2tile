@@ -1063,124 +1063,64 @@ contains
     status = nf90_put_var(ncid, varid, tile%lat )
 
     print*, "Writing vars"
-! slmsk => land "sea-land-ice mask (0-sea, 1-land, 2-ice)
+    !slmsk => land "sea-land-ice mask (0-sea, 1-land, 2-ice)
     status = nf90_inq_varid(ncid, "land", varid)
-    status = nf90_put_var(ncid, varid , tile%slmsk)  !(:,:,itile), &
-         ! start = (/1,1,1/), count = (/namelist%tile_size, namelist%tile_size, 1/))
-
+    status = nf90_put_var(ncid, varid , tile%slmsk)  
+    
     ! snow_depth/swe variables from the vector restart are land-only estimates    
     status = nf90_inq_varid(ncid, "weasd", varid)  !surface snow water equivalent (Kg/m2)
-    status = nf90_put_var(ncid, varid , tile%swe)  !(:,:,itile)  , & 
-      !start = (/1,1,1,1/), count = (/namelist%tile_size, namelist%tile_size, 1, 1/))
+    status = nf90_put_var(ncid, varid , tile%swe)  
     
     status = nf90_inq_varid(ncid, "snod", varid)   ! snod surface snow depth in m
-    status = nf90_put_var(ncid, varid , 0.001 * tile%snow_depth)  !(:,:,:)   , &
-      !start = (/1,1,1, 1/), count = (/namelist%tile_size, namelist%tile_size, 6, 1/))
+    status = nf90_put_var(ncid, varid , 0.001 * tile%snow_depth)  
 
     status = nf90_inq_varid(ncid, "soill1", varid)
-    status = nf90_put_var(ncid, varid , tile%soil_moisture_liquid(:,:,1,:)) !   , &
-      !start = (/1                , 1                ,  1, 1/), &
-      !count = (/namelist%tile_size, namelist%tile_size,  6, 1/))
+    status = nf90_put_var(ncid, varid , tile%soil_moisture_liquid(:,:,1,:)) 
 
     status = nf90_inq_varid(ncid, "soill2", varid)
-    status = nf90_put_var(ncid, varid , tile%soil_moisture_liquid(:,:,2,:)) !   , &
-      !start = (/1                , 1                ,  1, 1/), &
-      !count = (/namelist%tile_size, namelist%tile_size,  6, 1/))
+    status = nf90_put_var(ncid, varid , tile%soil_moisture_liquid(:,:,2,:)) 
 
     status = nf90_inq_varid(ncid, "soill3", varid)
-    status = nf90_put_var(ncid, varid , tile%soil_moisture_liquid(:,:,3,:)) !   , &
-      !start = (/1                , 1                ,  1, 1/), &
-      !count = (/namelist%tile_size, namelist%tile_size,  6, 1/))
+    status = nf90_put_var(ncid, varid , tile%soil_moisture_liquid(:,:,3,:)) 
 
     status = nf90_inq_varid(ncid, "soill4", varid)
-    status = nf90_put_var(ncid, varid , tile%soil_moisture_liquid(:,:,4,:)) !   , &
-      !start = (/1                , 1                ,  1, 1/), &
-      !count = (/namelist%tile_size, namelist%tile_size,  6, 1/))
-
+    status = nf90_put_var(ncid, varid , tile%soil_moisture_liquid(:,:,4,:)) 
+    
     status = nf90_inq_varid(ncid, "soilt1", varid)
-    status = nf90_put_var(ncid, varid , tile%temperature_soil(:,:,1,:)) !   , &
-      !start = (/1                , 1                ,  1, 1/), &
-      !count = (/namelist%tile_size, namelist%tile_size,  6, 1/))
-
+    status = nf90_put_var(ncid, varid , tile%temperature_soil(:,:,1,:)) 
+    
     status = nf90_inq_varid(ncid, "soilt2", varid)
-    status = nf90_put_var(ncid, varid , tile%temperature_soil(:,:,2,:)) !   , &
-      !start = (/1                , 1                ,  1, 1/), &
-      !count = (/namelist%tile_size, namelist%tile_size,  6, 1/))
+    status = nf90_put_var(ncid, varid , tile%temperature_soil(:,:,2,:)) 
 
     status = nf90_inq_varid(ncid, "soilt3", varid)
-    status = nf90_put_var(ncid, varid , tile%temperature_soil(:,:,3,:)) !   , &
-      !start = (/1                , 1                ,  1, 1/), &
-      !count = (/namelist%tile_size, namelist%tile_size,  6, 1/))
+    status = nf90_put_var(ncid, varid , tile%temperature_soil(:,:,3,:)) 
 
     status = nf90_inq_varid(ncid, "soilt4", varid)
-    status = nf90_put_var(ncid, varid , tile%temperature_soil(:,:,4,:)) !   , &
-      !start = (/1                , 1                ,  1, 1/), &
-      !count = (/namelist%tile_size, namelist%tile_size,  6, 1/))
+    status = nf90_put_var(ncid, varid , tile%temperature_soil(:,:,4,:)) 
 
     status = nf90_inq_varid(ncid, "soilw1", varid)
-    status = nf90_put_var(ncid, varid , tile%soil_moisture_total(:,:,1,:)) !   , &
-      !start = (/1                , 1                ,  1, 1/), &
-      !count = (/namelist%tile_size, namelist%tile_size,  6, 1/))
+    status = nf90_put_var(ncid, varid , tile%soil_moisture_total(:,:,1,:)) 
 
     status = nf90_inq_varid(ncid, "soilw2", varid)
-    status = nf90_put_var(ncid, varid , tile%soil_moisture_total(:,:,2,:)) !   , &
-      !start = (/1                , 1                ,  1, 1/), &
-      !count = (/namelist%tile_size, namelist%tile_size,  6, 1/))
+    status = nf90_put_var(ncid, varid , tile%soil_moisture_total(:,:,2,:)) 
 
     status = nf90_inq_varid(ncid, "soilw3", varid)
-    status = nf90_put_var(ncid, varid , tile%soil_moisture_total(:,:,3,:)) !   , &
-      !start = (/1                , 1                ,  1, 1/), &
-      !count = (/namelist%tile_size, namelist%tile_size,  6, 1/))
+    status = nf90_put_var(ncid, varid , tile%soil_moisture_total(:,:,3,:)) 
 
     status = nf90_inq_varid(ncid, "soilw4", varid)
-    status = nf90_put_var(ncid, varid , tile%soil_moisture_total(:,:,4,:)) !   , &
-      !start = (/1                , 1                ,  1, 1/), &
-      !count = (/namelist%tile_size, namelist%tile_size,  6, 1/))
+    status = nf90_put_var(ncid, varid , tile%soil_moisture_total(:,:,4,:)) 
       
     status = nf90_inq_varid(ncid, "spfh2m", varid)  
-    status = nf90_put_var(ncid, varid , tile%spec_humidity_2m)  !(:,:,itile)  , &
-      !start = (/1,1,1,1/), count = (/namelist%tile_size, namelist%tile_size, 1, 1/))
-
+    status = nf90_put_var(ncid, varid , tile%spec_humidity_2m) 
+    
     status = nf90_inq_varid(ncid, "tmp2m", varid)
-    status = nf90_put_var(ncid, varid , tile%temperature_2m)  !(:,:,itile)  , &
-      !start = (/1,1,1,1/), count = (/namelist%tile_size, namelist%tile_size, 1, 1/))
+    status = nf90_put_var(ncid, varid , tile%temperature_2m)  
       
     status = nf90_inq_varid(ncid, "vtype", varid)  !vegetation type in integer
-    status = nf90_put_var(ncid, varid , tile%vegetation_type)  !(:,:,itile)   , &
-      !start = (/1,1,1/), count = (/namelist%tile_size, namelist%tile_size, 1/))
+    status = nf90_put_var(ncid, varid , tile%vegetation_type)  
     
-!** multi-snow layer vars not in history
-!    status = nf90_inq_varid(ncid, "snowxy", varid)
-!    status = nf90_put_var(ncid, varid , tile%active_snow_layers(:,:,itile)   , &
-!      start = (/1,1,1/), count = (/namelist%tile_size, namelist%tile_size, 1/))
-!
-!    status = nf90_inq_varid(ncid, "sneqvoxy", varid)
-!    status = nf90_put_var(ncid, varid , tile%swe_previous(:,:,itile)   , &
-!      start = (/1,1,1/), count = (/namelist%tile_size, namelist%tile_size, 1/))
-!
-!    status = nf90_inq_varid(ncid, "zsnsoxy", varid)
-!    status = nf90_put_var(ncid, varid , tile%snow_soil_interface(:,:,:,itile) , &
-!      start = (/1                , 1                , 1, 1/), &
-!      count = (/namelist%tile_size, namelist%tile_size, 7, 1/))
-!
-!    status = nf90_inq_varid(ncid, "tsnoxy", varid)
-!    status = nf90_put_var(ncid, varid , tile%temperature_snow(:,:,:,itile)  , &
-!      start = (/1                , 1                , 1, 1/), &
-!      count = (/namelist%tile_size, namelist%tile_size, 3, 1/))
-!
-!    status = nf90_inq_varid(ncid, "snicexy", varid)
-!    status = nf90_put_var(ncid, varid , tile%snow_ice_layer(:,:,:,itile) , &
-!      start = (/1                , 1                , 1, 1/), &
-!      count = (/namelist%tile_size, namelist%tile_size, 3, 1/))
-!
-!    status = nf90_inq_varid(ncid, "snliqxy", varid)
-!    status = nf90_put_var(ncid, varid , tile%snow_liq_layer(:,:,:,itile) , &
-!      start = (/1                , 1                , 1, 1/), &
-!      count = (/namelist%tile_size, namelist%tile_size, 3, 1/))
-!**    
-!    status = nf90_inq_varid(ncid, "tgxy", varid)
-!    status = nf90_put_var(ncid, varid , tile%temperature_ground(:,:,itile)   , &
-!      start = (/1,1,1/), count = (/namelist%tile_size, namelist%tile_size, 1/))
+!** TODO: multi-snow layer vars currently not in history
+!**  "snowxy","sneqvoxy", "zsnsoxy", "tsnoxy", "snicexy", "snliqxy", "tgxy"
       
     status = nf90_close(ncid)
     if (status /= nf90_noerr) call handle_err(status)
