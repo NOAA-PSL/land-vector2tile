@@ -1031,7 +1031,7 @@ contains
     type(namelist_type) :: namelist
     type(tile_type)     :: tile
     character*19        :: date
-    character*256       :: tile_filename
+    character*256       :: csg_filename
     integer             :: itile
     integer             :: ncid, varid, status, i
     integer             :: dim_id_xdim, dim_id_ydim, dim_id_soil, dim_id_snow, dim_id_snso, dim_id_time
@@ -1041,11 +1041,11 @@ contains
     !prev_date "2024-06-09 12:00:00" !fhr=006  !date="2024-06-09_18:00:00" !time_iso_str="2024-06-09T18:00:00Z"
     write(time_iso_str, '(a10,a1,a2,a7)') date(1:10), "T", date(12:13), ":00:00Z"
 
-    tile_filename=trim(namelist%output_path)//"/"//trim(namelist%s3h_runtype)//".t"//namelist%prev_date(12:13)//"z.csg_sfc.f006.nc"
+    csg_filename=trim(namelist%output_path)//"/"//trim(namelist%s3h_runtype)//".t"//namelist%prev_date(12:13)//"z.csg_sfc.f006.nc"
  
-    print*, "Creating history file: ", trim(tile_filename)
+    print*, "Creating history file: ", trim(csg_filename)
 
-    call csg_history_header(tile_filename, namelist%tile_size, namelist%npz, ncid)
+    call csg_history_header(csg_filename, namelist%tile_size, namelist%npz, ncid)
 
     !only dimension vars time_iso and lat/lon not written in s3history_header()
     print*, "Writing time, lat, lon"
