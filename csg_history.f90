@@ -3291,7 +3291,7 @@ module csg_history
 
   status = nf90_inq_varid(ncid, "time", varid)
   if (status /= nf90_noerr) call handle_err(status)
-  status = nf90_put_var(ncid, varid, (/0./) )
+  status = nf90_put_var(ncid, varid, (/0.0_8/) )
 
   status = nf90_inq_varid(ncid, "tile", varid)
   if (status /= nf90_noerr) call handle_err(status)
