@@ -62,7 +62,7 @@ contains
     npz = 127
     write_s3history = .false.
     s3h_runtype = "enkfgdas"
-
+    prev_date = ""
     open(30, file=namelist%namelist_name, form="formatted")
      read(30, run_setup)
     close(30)
