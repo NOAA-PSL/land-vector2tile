@@ -1036,19 +1036,31 @@ contains
     integer             :: ncid, varid, status, i
     integer             :: dim_id_xdim, dim_id_ydim, dim_id_soil, dim_id_snow, dim_id_snso, dim_id_time
     character*20        :: time_iso_str
+    character*19        :: hr_since_str
 
     !TODO: only working with fhr=6. Better way to get these time info?
     !prev_date "2024-06-09 12:00:00" !fhr=006  !date="2024-06-09_18:00:00" !time_iso_str="2024-06-09T18:00:00Z"
-    write(time_iso_str, '(a10,a1,a2,a7)') date(1:10), "T", date(12:13), ":00:00Z"
     if (len_trim(namelist%prev_date) < 13) then
         print *, 'ERROR: write_s3history requires prev_date in namelist (YYYY-MM-DD_HH:MM:SS)'
         stop 10
     end if
+    write(time_iso_str, '(a10,a1,a2,a7)') date(1:10), "T", date(12:13), ":00:00Z"
+    write(hr_since_str, '(a10,a1,a2,a6)') date(1:10), " ", date(12:13), ":00:00"
+
     csg_filename=trim(namelist%output_path)//"/"//trim(namelist%s3h_runtype)//".t"//namelist%prev_date(12:13)//"z.csg_sfc.f006.nc"
     print*, "Creating history file: ", trim(csg_filename)
-
     call csg_history_header(csg_filename, namelist%tile_size, namelist%npz, ncid)
 
+    ! add time unit 
+    status = nf90_inq_varid(ncid, "time", varid)
+    if (status /= nf90_noerr) call handle_err(status)
+    status = nf90_redef(ncid)
+    if (status /= nf90_noerr) call handle_err(status)
+    status = nf90_put_att(ncid, varid, 'units', 'hours since '//hr_since_str)  !hours since 2024-06-09 12:00:00') 
+    if (status /= nf90_noerr) call handle_err(status)
+    status = nf90_enddef(ncid)
+    if (status /= nf90_noerr) call handle_err(status)
+  
     !only dimension vars time_iso and lat/lon not written in s3history_header()
     print*, "Writing time, lat, lon"
 
