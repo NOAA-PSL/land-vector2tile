@@ -176,8 +176,8 @@ module csg_history
   if (status /= nf90_noerr) call handle_err(status)
   status = nf90_put_att(ncid, varid_time, 'long_name', 'time')
   if (status /= nf90_noerr) call handle_err(status)
-  status = nf90_put_att(ncid, varid_time, 'units', 'hours since 2024-06-09 12:00:00')
-  if (status /= nf90_noerr) call handle_err(status)
+  !status = nf90_put_att(ncid, varid_time, 'units', 'hours since 2024-06-09 12:00:00') ! put actual unit later
+  !if (status /= nf90_noerr) call handle_err(status)
 
   ! tile - cubed-sphere face
   status = nf90_def_var(ncid, 'tile', NF90_INT, (/ dimid_tile /), varid_tile)
