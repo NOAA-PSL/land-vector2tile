@@ -1056,9 +1056,9 @@ contains
 
     csg_filename=trim(namelist%output_path)//"/"//trim(namelist%s3h_runtype)//".t"//namelist%prev_date(12:13)//"z.csg_sfc.f006.nc"
     print*, "Creating history file: ", trim(csg_filename)
-    call csg_history_header(csg_filename, namelist%tile_size, namelist%npz, ncid)
-
-    ! add time unit 
+    call csg_history_header(csg_filename, namelist%tile_size, ncid)
+    
+    !Write dimension vars time, time_iso and lat/lon not written in s3history_header()
     status = nf90_inq_varid(ncid, "time", varid)
     if (status /= nf90_noerr) call handle_err(status)
     status = nf90_redef(ncid)
@@ -1066,14 +1066,9 @@ contains
     status = nf90_put_att(ncid, varid, 'units', 'hours since '//hr_since_str)  
     if (status /= nf90_noerr) call handle_err(status)
     status = nf90_enddef(ncid)
+    if (status /= nf90_noerr) call handle_err(status)    
+    status = nf90_put_var(ncid, varid, (/6.0_8/))  !fhr6
     if (status /= nf90_noerr) call handle_err(status)
-
-    ! put fhr6
-    status = nf90_put_var(ncid, varid, (/6.0_8/))
-    if (status /= nf90_noerr) call handle_err(status)
-  
-    !only dimension vars time_iso and lat/lon not written in s3history_header()
-    print*, "Writing time, lat, lon"
 
     status = nf90_inq_varid(ncid, "time_iso", varid)
     if (status /= nf90_noerr) call handle_err(status)
@@ -1087,7 +1082,6 @@ contains
     if (status /= nf90_noerr) call handle_err(status)
     status = nf90_put_var(ncid, varid, tile%lat )
 
-    print*, "Writing vars"
     !slmsk => land "sea-land-ice mask (0-sea, 1-land, 2-ice)
     status = nf90_inq_varid(ncid, "land", varid)
     status = nf90_put_var(ncid, varid , tile%slmsk)  
