@@ -19,6 +19,11 @@ module namelist_mod
     character(len=128) :: lndp_var_list(max_n_var_lndp)
     integer            :: n_var_lndp
     integer            :: ens_size 
+    logical            :: write_s3history
+    character*128      :: s3h_runtype
+    character*19       :: prev_date = ""  !needed for history file
+    integer            :: npz  ! vertical dim: from corresponding yaml file 
+
   end type namelist_type
 
 contains
@@ -42,14 +47,22 @@ contains
     integer             :: n_var_lndp
     integer             :: ens_size
     integer             :: k
+    logical             :: write_s3history
+    character*128       :: s3h_runtype
+    character*19        :: prev_date
+    integer             :: npz
 
     namelist / run_setup  / direction, tile_path, tile_fstub, tile_size,  restart_date, vector_restart_path, &
                             tile_restart_path, output_path, static_filename, &
-                            lndp_layout, lndp_input_file, lndp_output_file, lndp_var_list, n_var_lndp, ens_size
+                            lndp_layout, lndp_input_file, lndp_output_file, lndp_var_list, n_var_lndp, &
+                            ens_size, write_s3history, s3h_runtype, prev_date, npz
 
     lndp_var_list = 'XXX'
     ens_size = 1
-
+    npz = 127
+    write_s3history = .false.
+    s3h_runtype = "enkfgdas"
+    prev_date = ""
     open(30, file=namelist%namelist_name, form="formatted")
      read(30, run_setup)
     close(30)
@@ -68,7 +81,11 @@ contains
     namelist%lndp_input_file     = lndp_input_file
     namelist%lndp_output_file    = lndp_output_file
     namelist%ens_size            = ens_size
-
+    namelist%write_s3history     = write_s3history
+    namelist%s3h_runtype         = s3h_runtype
+    namelist%prev_date           = prev_date
+    namelist%npz                 = npz
+    
     n_var_lndp= 0
     do k =1,size(lndp_var_list)
        if (trim(lndp_var_list(k)) .EQ. 'XXX') then

@@ -1,6 +1,7 @@
 module vector2tile_restart_mod
 
   use namelist_mod
+  use csg_history
   use netcdf
   implicit none
 
@@ -48,6 +49,10 @@ module vector2tile_restart_mod
 ! near surface obs assimilation 
     double precision, allocatable :: temperature_2m(:,:,:)
     double precision, allocatable :: spec_humidity_2m(:,:,:)
+! needed by cube sphere history file
+    double precision, allocatable :: lat(:,:,:)
+    double precision, allocatable :: lon(:,:,:)
+   
   end type tile_type    
   
 contains   
@@ -94,8 +99,10 @@ contains
   allocate(tile%vegetation_type    (namelist%tile_size,namelist%tile_size,6))
   allocate(tile%soil_moisture_liquid (namelist%tile_size,namelist%tile_size,4,6))
   allocate(tile%temperature_ground (namelist%tile_size,namelist%tile_size,6))
-  allocate(tile%temperature_2m    (namelist%tile_size,namelist%tile_size,6))
-  allocate(tile%spec_humidity_2m (namelist%tile_size,namelist%tile_size,6))
+  allocate(tile%temperature_2m     (namelist%tile_size,namelist%tile_size,6))
+  allocate(tile%spec_humidity_2m   (namelist%tile_size,namelist%tile_size,6))
+  allocate(tile%lat                (namelist%tile_size,namelist%tile_size,6))
+  allocate(tile%lon                (namelist%tile_size,namelist%tile_size,6))
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Read FV3 tile information
@@ -118,7 +125,19 @@ contains
 
     status = nf90_inq_varid(ncid, "land_frac", varid)
     status = nf90_get_var(ncid, varid , tile%land_frac(:,:,itile))
-  
+
+    if (namelist%write_s3history) then
+      status = nf90_inq_varid(ncid, "geolon", varid)
+      if (status /= nf90_noerr) call handle_err(status)
+      status = nf90_get_var(ncid, varid, tile%lon(:,:,itile))
+      if (status /= nf90_noerr) call handle_err(status)
+
+      status = nf90_inq_varid(ncid, "geolat", varid)
+      if (status /= nf90_noerr) call handle_err(status)
+      status = nf90_get_var(ncid, varid, tile%lat(:,:,itile))
+      if (status /= nf90_noerr) call handle_err(status)
+    end if
+
     status = nf90_close(ncid)
     
     vector_length = vector_length + count(tile%land_frac(:,:,itile) > 0)
@@ -202,6 +221,10 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     call WriteTileRestart(namelist, date, tile)
+
+    if (namelist%write_s3history) then
+      call WriteS3History(namelist, date, tile)
+    end if
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! tile2vector branch
@@ -1006,7 +1029,125 @@ contains
   end do
   
   end subroutine WriteTileRestart
+
+  subroutine WriteS3History(namelist, date, tile)
   
+    use netcdf
+  
+    type(namelist_type) :: namelist
+    type(tile_type)     :: tile
+    character*19        :: date
+    character*256       :: csg_filename
+    integer             :: itile
+    integer             :: ncid, varid, status, i
+    integer             :: dim_id_xdim, dim_id_ydim, dim_id_soil, dim_id_snow, dim_id_snso, dim_id_time
+    character*20        :: time_iso_str
+    character*19        :: hr_since_str
+
+    !TODO: only working with fhr=6. Better way to get these time info?
+    !prev_date "2024-06-09 12:00:00" !fhr=006  !date="2024-06-09_18:00:00" !time_iso_str="2024-06-09T18:00:00Z"
+    if (len_trim(namelist%prev_date) < 19) then
+        print *, 'ERROR: write_s3history requires prev_date in namelist (YYYY-MM-DD_HH:MM:SS)'
+        stop 10
+    end if
+    write(time_iso_str, '(a10,a1,a2,a1,a2,a1,a2,a1)') date(1:10), 'T', date(12:13), ':', date(15:16), ':', date(18:19), 'Z'
+    write(hr_since_str, '(a10,a1,a2,a1,a2,a1,a2)') namelist%prev_date(1:10), ' ', namelist%prev_date(12:13), ':', &
+                                                   namelist%prev_date(15:16), ':', namelist%prev_date(18:19)
+
+    csg_filename=trim(namelist%output_path)//"/"//trim(namelist%s3h_runtype)//".t"//namelist%prev_date(12:13)//"z.csg_sfc.f006.nc"
+    print*, "Creating history file: ", trim(csg_filename)
+    call csg_history_header(csg_filename, namelist%tile_size, ncid)
+    
+    !Write dimension vars time, time_iso and lat/lon not written in s3history_header()
+    status = nf90_inq_varid(ncid, "time", varid)
+    if (status /= nf90_noerr) call handle_err(status)
+    status = nf90_redef(ncid)
+    if (status /= nf90_noerr) call handle_err(status)
+    status = nf90_put_att(ncid, varid, 'units', 'hours since '//hr_since_str)  
+    if (status /= nf90_noerr) call handle_err(status)
+    status = nf90_enddef(ncid)
+    if (status /= nf90_noerr) call handle_err(status)    
+    status = nf90_put_var(ncid, varid, (/6.0_8/))  !fhr6
+    if (status /= nf90_noerr) call handle_err(status)
+
+    status = nf90_inq_varid(ncid, "time_iso", varid)
+    if (status /= nf90_noerr) call handle_err(status)
+    status = nf90_put_var(ncid, varid, time_iso_str )
+
+    status = nf90_inq_varid(ncid, "lon", varid)
+    if (status /= nf90_noerr) call handle_err(status)
+    status = nf90_put_var(ncid, varid ,tile%lon )
+
+    status = nf90_inq_varid(ncid, "lat", varid)
+    if (status /= nf90_noerr) call handle_err(status)
+    status = nf90_put_var(ncid, varid, tile%lat )
+
+    !slmsk => land "sea-land-ice mask (0-sea, 1-land, 2-ice)
+    status = nf90_inq_varid(ncid, "land", varid)
+    status = nf90_put_var(ncid, varid , tile%slmsk)  
+    
+    ! snow_depth/swe variables from the vector restart are land-only estimates    
+    status = nf90_inq_varid(ncid, "weasd", varid)  !surface snow water equivalent (Kg/m2)
+    status = nf90_put_var(ncid, varid , tile%swe)  
+    
+    status = nf90_inq_varid(ncid, "snod", varid)   ! snod surface snow depth in m
+    status = nf90_put_var(ncid, varid , 0.001 * tile%snow_depth)  
+
+    status = nf90_inq_varid(ncid, "soill1", varid)
+    status = nf90_put_var(ncid, varid , tile%soil_moisture_liquid(:,:,1,:)) 
+
+    status = nf90_inq_varid(ncid, "soill2", varid)
+    status = nf90_put_var(ncid, varid , tile%soil_moisture_liquid(:,:,2,:)) 
+
+    status = nf90_inq_varid(ncid, "soill3", varid)
+    status = nf90_put_var(ncid, varid , tile%soil_moisture_liquid(:,:,3,:)) 
+
+    status = nf90_inq_varid(ncid, "soill4", varid)
+    status = nf90_put_var(ncid, varid , tile%soil_moisture_liquid(:,:,4,:)) 
+    
+    status = nf90_inq_varid(ncid, "soilt1", varid)
+    status = nf90_put_var(ncid, varid , tile%temperature_soil(:,:,1,:)) 
+    
+    status = nf90_inq_varid(ncid, "soilt2", varid)
+    status = nf90_put_var(ncid, varid , tile%temperature_soil(:,:,2,:)) 
+
+    status = nf90_inq_varid(ncid, "soilt3", varid)
+    status = nf90_put_var(ncid, varid , tile%temperature_soil(:,:,3,:)) 
+
+    status = nf90_inq_varid(ncid, "soilt4", varid)
+    status = nf90_put_var(ncid, varid , tile%temperature_soil(:,:,4,:)) 
+
+    status = nf90_inq_varid(ncid, "soilw1", varid)
+    status = nf90_put_var(ncid, varid , tile%soil_moisture_total(:,:,1,:)) 
+
+    status = nf90_inq_varid(ncid, "soilw2", varid)
+    status = nf90_put_var(ncid, varid , tile%soil_moisture_total(:,:,2,:)) 
+
+    status = nf90_inq_varid(ncid, "soilw3", varid)
+    status = nf90_put_var(ncid, varid , tile%soil_moisture_total(:,:,3,:)) 
+
+    status = nf90_inq_varid(ncid, "soilw4", varid)
+    status = nf90_put_var(ncid, varid , tile%soil_moisture_total(:,:,4,:)) 
+      
+    status = nf90_inq_varid(ncid, "spfh2m", varid)  
+    status = nf90_put_var(ncid, varid , tile%spec_humidity_2m) 
+    
+    status = nf90_inq_varid(ncid, "tmp2m", varid)
+    status = nf90_put_var(ncid, varid , tile%temperature_2m)  
+      
+    status = nf90_inq_varid(ncid, "vtype", varid)  !vegetation type in integer
+    status = nf90_put_var(ncid, varid , tile%vegetation_type)  
+    
+!** TODO: multi-snow layer vars currently not in history
+!**  "snowxy","sneqvoxy", "zsnsoxy", "tsnoxy", "snicexy", "snliqxy", "tgxy"
+      
+    status = nf90_close(ncid)
+    if (status /= nf90_noerr) call handle_err(status)
+  
+  
+  end subroutine WriteS3History
+
+
   subroutine ReadVectorLength(filename, vector_length)
   
   use netcdf

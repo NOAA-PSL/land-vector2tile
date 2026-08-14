@@ -31,6 +31,7 @@ set( VECTOR2TILE_LINKER_LANGUAGE Fortran )
 
 list ( APPEND src_files
 ./namelist_mod.f90
+./csg_history.f90
 ./vector2tile_perturbation_mod.f90
 ./vector2tile_restart_mod.f90
 )
